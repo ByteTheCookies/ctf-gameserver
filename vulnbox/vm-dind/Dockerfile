@@ -34,7 +34,6 @@ COPY services/CCForms /root/CCForms
 RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN chmod +x /root/CCForms/deploy.sh
 RUN docker compose version >/dev/null
-RUN /root/CCForms/deploy.sh
 
 VOLUME ["/var/lib/docker"]
 
