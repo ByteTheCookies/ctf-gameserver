@@ -25,8 +25,8 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 if [[ ! -f "$MARKER_FILE" ]]; then
-    docker-compose up -d --build
+    docker compose up -d --build
     touch "$MARKER_FILE"
 else
-    docker-compose up -d
+    docker compose up -d
 fi
