@@ -5,9 +5,10 @@ ENV DOCKER_TLS_CERTDIR=
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       ca-certificates curl iptables iproute2 uidmap tini docker.io openssh-server \
-    && (apt-get install -y --no-install-recommends docker-compose-plugin \
-        || apt-get install -y --no-install-recommends docker-compose-v2) \
+       ca-certificates curl iptables iproute2 uidmap tini docker.io docker-compose openssh-server \
+    && mkdir -p /usr/local/lib/docker/cli-plugins \
+    && printf '%s\n' '#!/bin/sh' 'exec /usr/bin/docker-compose "$@"' > /usr/local/lib/docker/cli-plugins/docker-compose \
+    && chmod +x /usr/local/lib/docker/cli-plugins/docker-compose \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /run/sshd /etc/ssh/sshd_config.d /etc/vulnbox \
