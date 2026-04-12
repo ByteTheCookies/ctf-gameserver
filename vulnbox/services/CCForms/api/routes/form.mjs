@@ -9,11 +9,8 @@ import {requireLoginMid} from './auth.mjs';
 
 const router = express.Router();
 
-const defaultDbHost = fs.existsSync('/.dockerenv') ? 'postgres' : '127.0.0.1';
-const dbHost = process.env.DB_HOST || defaultDbHost;
-
 const sequelize = new Sequelize({
-  host: dbHost,
+  host: 'postgres',
   database: 'forms',
   username: 'formsuser',
   password: 'formspass',
