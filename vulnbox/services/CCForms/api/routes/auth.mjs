@@ -2,12 +2,16 @@ import express from 'express';
 import { Sequelize, DataTypes } from 'sequelize';
 import { v4 as uuid } from 'uuid';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
 
 import asyncWrapper from '../express-async-wrapper.mjs';
 import HttpError from '../http-error.mjs';
 
+const defaultDbHost = fs.existsSync('/.dockerenv') ? 'postgres' : '127.0.0.1';
+const dbHost = process.env.DB_HOST || defaultDbHost;
+
 const sequelize = new Sequelize({
-  host: 'postgres',
+  host: dbHost,
   database: 'auth',
   username: 'authuser',
   password: 'authpass',
