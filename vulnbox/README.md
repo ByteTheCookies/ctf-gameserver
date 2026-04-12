@@ -105,6 +105,13 @@ If all VM pings fail but `gameserver` is reachable, you likely have route overla
 sudo ./vulnbox/scripts/setup_local_vm_routes.sh
 ```
 
+If more than one Docker network uses `10.60.0.0/16`, force the right one:
+
+```bash
+docker network ls
+NETWORK_NAME=<your_vulnbox_network> sudo ./vulnbox/scripts/setup_local_vm_routes.sh
+```
+
 Then re-run:
 
 ```bash
