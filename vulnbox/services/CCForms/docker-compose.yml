@@ -1,28 +1,42 @@
 services:
   frontend:
     build: ./form
+    restart: unless-stopped
     ports:
-      - 3000:3000
+      - "0.0.0.0:3000:3000"
+    depends_on:
+      backend:
+        condition: service_started
     networks:
       - app_net
   backend:
     build: ./api
+    restart: unless-stopped
     volumes:
       - ./api/forms:/app/forms
     environment:
       - JWT_SECRET
     ports:
-      - 3001:3001
+      - "0.0.0.0:3001:3001"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - app_net
   postgres:
+    restart: unless-stopped
     volumes:
       - ./db/data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
     environment:
       - POSTGRES_PASSWORD=password
     build: ./db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     networks:
       - app_net
 
