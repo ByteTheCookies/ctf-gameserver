@@ -1,15 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SERVICE_SRC="/opt/services/CCForms"
+SERVICE_SRC="/root/CCForms"
 STATE_DIR="/etc/vulnbox"
 SECRET_FILE="${STATE_DIR}/ccforms_jwt_secret"
+ENV_FILE="${SERVICE_SRC}/.env"
 MARKER_FILE="${STATE_DIR}/ccforms_bootstrapped"
 
 if [[ ! -d "$SERVICE_SRC" ]]; then
   echo "[vulnbox] CCForms source not found at $SERVICE_SRC, skipping bootstrap" >&2
   exit 0
 fi
+
+compose_cmd() {
+  if docker compose version >/dev/null 2>&1; then
+    echo "docker"
+    return 0
+  fi
+  if command -v docker-compose >/dev/null 2>&1; then
+    echo "docker-compose"
+    return 0
+  fi
+  return 1
+}
 
 mkdir -p "$STATE_DIR"
 
@@ -19,49 +32,33 @@ if [[ ! -f "$SECRET_FILE" ]]; then
 fi
 JWT_SECRET="$(cat "$SECRET_FILE")"
 
-if ! docker network inspect ccforms-net >/dev/null 2>&1; then
-  docker network create ccforms-net >/dev/null
+if [[ ! -f "$ENV_FILE" ]]; then
+  printf 'JWT_SECRET=%s\n' "$JWT_SECRET" >"$ENV_FILE"
+  chmod 600 "$ENV_FILE"
 fi
 
+COMPOSE_BIN="$(compose_cmd || true)"
+if [[ -z "$COMPOSE_BIN" ]]; then
+  echo "[vulnbox] Docker Compose not available inside VM (need docker compose or docker-compose)." >&2
+  exit 1
+fi
+
+run_compose() {
+  if [[ "$COMPOSE_BIN" == "docker" ]]; then
+    docker compose "$@"
+  else
+    docker-compose "$@"
+  fi
+}
+
+cd "$SERVICE_SRC"
 if [[ ! -f "$MARKER_FILE" ]]; then
-  # Build images once on first boot (can be forced by deleting marker in the VM).
-  docker build -t ccforms-db:local "$SERVICE_SRC/db" >/var/log/ccforms-build-db.log 2>&1
-  docker build -t ccforms-api:local "$SERVICE_SRC/api" >/var/log/ccforms-build-api.log 2>&1
-  docker build -t ccforms-frontend:local "$SERVICE_SRC/form" >/var/log/ccforms-build-frontend.log 2>&1
+  # First boot: build images and start all containers.
+  run_compose up -d --build >/var/log/ccforms-compose.log 2>&1
+  touch "$MARKER_FILE"
+else
+  # Subsequent boots: ensure containers are up.
+  run_compose up -d >/var/log/ccforms-compose.log 2>&1
 fi
 
-if ! docker ps -a --format '{{.Names}}' | grep -qx 'ccforms-db'; then
-  docker run -d \
-    --name ccforms-db \
-    --restart unless-stopped \
-    --network ccforms-net \
-    -e POSTGRES_PASSWORD=password \
-    -v ccforms-db-data:/var/lib/postgresql/data \
-    ccforms-db:local >/dev/null
-fi
-
-if ! docker ps -a --format '{{.Names}}' | grep -qx 'ccforms-backend'; then
-  docker run -d \
-    --name ccforms-backend \
-    --restart unless-stopped \
-    --network ccforms-net \
-    -e JWT_SECRET="$JWT_SECRET" \
-    -v ccforms-api-forms:/app/forms \
-    -p 3001:3001 \
-    ccforms-api:local >/dev/null
-fi
-
-if ! docker ps -a --format '{{.Names}}' | grep -qx 'ccforms-frontend'; then
-  docker run -d \
-    --name ccforms-frontend \
-    --restart unless-stopped \
-    --network ccforms-net \
-    -p 3000:3000 \
-    ccforms-frontend:local >/dev/null
-fi
-
-# Ensure containers are running after restart/recreate events.
-docker start ccforms-db ccforms-backend ccforms-frontend >/dev/null 2>&1 || true
-
-touch "$MARKER_FILE"
 echo "[vulnbox] CCForms bootstrap completed"

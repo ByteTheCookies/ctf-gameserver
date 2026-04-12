@@ -5,7 +5,7 @@ ENV DOCKER_TLS_CERTDIR=
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       ca-certificates curl iptables iproute2 uidmap tini docker.io openssh-server \
+       ca-certificates curl iptables iproute2 uidmap tini docker.io docker-compose openssh-server \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /run/sshd /etc/ssh/sshd_config.d /etc/vulnbox \
@@ -18,7 +18,7 @@ RUN mkdir -p /run/sshd /etc/ssh/sshd_config.d /etc/vulnbox \
 
 COPY vm-dind/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY vm-dind/bootstrap-ccforms.sh /usr/local/bin/bootstrap-ccforms.sh
-COPY services/CCForms /opt/services/CCForms
+COPY services/CCForms /root/CCForms
 RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/bootstrap-ccforms.sh
 
