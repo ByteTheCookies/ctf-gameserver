@@ -25,4 +25,4 @@ RUN chmod +x /usr/local/bin/bootstrap-ccforms.sh
 VOLUME ["/var/lib/docker"]
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]
-CMD ["bash"]
+CMD ["sleep", "infinity"]
