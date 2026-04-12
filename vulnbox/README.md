@@ -71,6 +71,7 @@ sudo ./vulnbox/scripts/setup_vps_routing.sh --check
 - Retrieve it with `sudo docker exec vulnbox-teamXX cat /etc/vulnbox/root_password`.
 - CCForms is bootstrapped automatically inside each VM via DinD:
   - source path in VM: `/root/CCForms`
-  - started by default on VM boot using Docker Compose
+  - started by default on VM boot using `/root/CCForms/deploy.sh`
+  - requires `docker compose` plugin inside VM
   - backend: `10.60.<team>.1:3001`
   - frontend: `10.60.<team>.1:3000`
