@@ -18,6 +18,7 @@ COPY LICENSE.txt README.md pyproject.toml /app/
 COPY scripts /app/scripts
 COPY src /app/src
 COPY examples /app/examples
+COPY checkers /app/checkers
 
 RUN curl -fsSL https://raw.githubusercontent.com/datasets/country-list/master/data.csv \
     -o /app/src/ctf_gameserver/web/registration/countries.csv
@@ -37,6 +38,6 @@ RUN mkdir -p /app/src/ctf_gameserver/web/static/ext \
 
 RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir -e . \
- && pip install --no-cache-dir gunicorn psycopg2-binary
+ && pip install --no-cache-dir gunicorn psycopg2-binary requests
 
 COPY docker/web-settings /app/docker/web-settings

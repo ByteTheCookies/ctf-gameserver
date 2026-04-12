@@ -45,4 +45,9 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
+# Bootstrap internal vuln services inside DinD.
+if ! /usr/local/bin/bootstrap-ccforms.sh; then
+  echo "[vulnbox] CCForms bootstrap failed. See /var/log/ccforms-build-*.log" >&2
+fi
+
 exec "$@"

@@ -17,7 +17,10 @@ RUN mkdir -p /run/sshd /etc/ssh/sshd_config.d /etc/vulnbox \
        > /etc/ssh/sshd_config.d/99-vulnbox.conf
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY bootstrap-ccforms.sh /usr/local/bin/bootstrap-ccforms.sh
+COPY services/CCForms /opt/services/CCForms
 RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/bootstrap-ccforms.sh
 
 VOLUME ["/var/lib/docker"]
 

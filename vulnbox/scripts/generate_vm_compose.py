@@ -61,8 +61,7 @@ def main() -> int:
         raise ValueError(f"Missing passwords for team IDs: {', '.join(missing)}")
 
     out = Path(args.output).resolve()
-    vm_dind_dir = (root_dir / "vm-dind").resolve()
-    context_rel = os.path.relpath(vm_dind_dir, out.parent)
+    context_rel = os.path.relpath(root_dir.resolve(), out.parent)
 
     lines: list[str] = []
     lines.append("name: vulnbox-vms")
@@ -76,6 +75,7 @@ def main() -> int:
                 f"  vulnbox-team{team_s}:",
                 "    build:",
                 f"      context: {context_rel}",
+                "      dockerfile: vm-dind/Dockerfile",
                 "    image: vulnbox-dind:local",
                 f"    container_name: vulnbox-team{team_s}",
                 f"    hostname: vm-team{team_s}",

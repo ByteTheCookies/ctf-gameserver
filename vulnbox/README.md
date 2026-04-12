@@ -69,3 +69,6 @@ sudo ./vulnbox/scripts/setup_vps_routing.sh --check
 - Root password is initialized only on first boot (unless `SSH_ROOT_PASSWORD` is set on first boot).
 - Password is stored in `/etc/vulnbox/root_password` inside VM and not printed in logs.
 - Retrieve it with `sudo docker exec vulnbox-teamXX cat /etc/vulnbox/root_password`.
+- CCForms is bootstrapped automatically inside each VM via DinD:
+  - backend: `10.60.<team>.1:3001`
+  - frontend: `10.60.<team>.1:3000`

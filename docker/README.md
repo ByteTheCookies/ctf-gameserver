@@ -13,6 +13,8 @@ This repository now includes a compose-based baseline deployment for CTF Gameser
 - `submission`: `ctf-submission` on port `6666`
 - `checker_web` (optional profile): checker master for service slug `web`
 - `checker_pwn` (optional profile): checker master for service slug `pwn`
+- `checker_ccforms_1` (optional profile): checker master for service slug `ccforms-1`
+- `checker_ccforms_2` (optional profile): checker master for service slug `ccforms-2`
 - `vpnstatus` (optional profile): `ctf-vpnstatus`
 
 ## First Startup
@@ -60,15 +62,17 @@ After first login in `/admin`, configure in this order:
 
 ## Optional Profiles
 
-- Checkers (two sample services):
+- Checkers:
 
   ```bash
-  docker compose --profile checker up -d checker_web checker_pwn
+  docker compose --profile checker up -d checker_web checker_pwn checker_ccforms_1 checker_ccforms_2
   ```
 
   Configure:
   - `docker/env/checker-web.env`
   - `docker/env/checker-pwn.env`
+  - `docker/env/checker-ccforms-1.env`
+  - `docker/env/checker-ccforms-2.env`
 
 - VPN Status:
 

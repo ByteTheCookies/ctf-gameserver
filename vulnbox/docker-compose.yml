@@ -3,7 +3,8 @@ name: vulnbox
 services:
   vulnbox-vm:
     build:
-      context: ./vm-dind
+      context: .
+      dockerfile: vm-dind/Dockerfile
     image: vulnbox-dind:local
     container_name: vulnbox-team${TEAM_ID:-1}
     hostname: vm-team${TEAM_ID:-1}
