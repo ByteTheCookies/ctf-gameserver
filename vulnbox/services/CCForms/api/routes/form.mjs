@@ -5,7 +5,7 @@ import fs from 'fs';
 
 import asyncWrapper from '../express-async-wrapper.mjs';
 import HttpError from '../http-error.mjs';
-import {requireLoginMid} from './auth.mjs';
+import { requireLoginMid } from './auth.mjs';
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ const sequelize = new Sequelize({
   host: 'postgres',
   database: 'forms',
   username: 'formsuser',
-  password: 'formspass',
+  password: 'password',
   dialect: 'postgres',
   pool: {
     max: 5,
@@ -181,7 +181,7 @@ router.get(
     // Add embedded questions (this feature is not used by the web client, but only by the API clients)
     for (const q of question) {
       if (q.type === 'embedded') {
-        if (q.data.id && /^[a-f0-9-]{36}$/.test(q.data.id)){
+        if (q.data.id && /^[a-f0-9-]{36}$/.test(q.data.id)) {
           const embeddedQuestions = JSON.parse(fs.readFileSync(`forms/${q.data.id}.json`));
           for (const e of embeddedQuestions) {
             newQuestions.push(e);
@@ -239,14 +239,14 @@ router.post(
     }
 
     const files = []
-    for (let i=0 ; i<questions.length ; i++) {
+    for (let i = 0; i < questions.length; i++) {
       const answer = userAnswer[i];
       if (questions[i].type === 'file') {
         if ((answer.content || '').length > 5000) {
           throw new HttpError(400, 'File content too long');
         }
         const fid = uuid();
-        files.push({id: fid, name: answer.name, content: answer.content});
+        files.push({ id: fid, name: answer.name, content: answer.content });
         delete answer.content;
         answer.file_id = fid;
       }

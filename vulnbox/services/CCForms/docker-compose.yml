@@ -3,6 +3,8 @@ services:
     build: ./form
     ports:
       - 3000:3000
+    networks:
+      - app_net
   backend:
     build: ./api
     volumes:
@@ -13,9 +15,17 @@ services:
       - 3001:3001
     depends_on:
       - postgres
+    networks:
+      - app_net
   postgres:
     volumes:
       - ./db/data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=password
     build: ./db
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    driver: bridge

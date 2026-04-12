@@ -10,7 +10,7 @@ const sequelize = new Sequelize({
   host: 'postgres',
   database: 'auth',
   username: 'authuser',
-  password: 'authpass',
+  password: 'password',
   dialect: 'postgres',
   pool: {
     max: 5,
