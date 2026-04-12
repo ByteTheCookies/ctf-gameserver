@@ -38,6 +38,12 @@ sudo DOCKER_HOST=unix:///var/run/docker.sock \
   docker compose -f vulnbox/docker-compose.vms.yml up -d --build
 ```
 
+If you need a real reset from zero (remove persistent DinD data volumes too):
+
+```bash
+sudo ./vulnbox/scripts/recreate_vms_from_zero.sh
+```
+
 3. Install server WireGuard config:
 
 ```bash
@@ -66,6 +72,7 @@ sudo ./vulnbox/scripts/setup_vps_routing.sh --check
 - Distribute only per-team host profiles from `output/wireguard/teams/teamXX/hosts/`.
 - Treat `output/vm_passwords.json` and `output/vm_passwords.env` as secrets.
 - Each VM starts `sshd` on port `22` with `root` password auth enabled.
+- VM data is persistent by default because each team uses a named volume (`dind-data-teamXX`).
 - Root password is initialized only on first boot (unless `SSH_ROOT_PASSWORD` is set on first boot).
 - Password is stored in `/etc/vulnbox/root_password` inside VM and not printed in logs.
 - Retrieve it with `sudo docker exec vulnbox-teamXX cat /etc/vulnbox/root_password`.
