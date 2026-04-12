@@ -56,3 +56,6 @@ sudo ./vulnbox/scripts/setup_vps_routing.sh --check
 - `local_vulnboxes: true` in `vpn_config.json` keeps `10.60.x.1` local on VPS and avoids WG route conflicts.
 - Host profiles are generated with `AllowedIPs = 10.10.0.1/32, 10.60.0.0/16, 10.81.0.0/16`.
 - Distribute only per-team host profiles from `output/wireguard/teams/teamXX/hosts/`.
+- Each VM starts `sshd` on port `22` with `root` password auth enabled.
+- Root password is auto-generated at container start (unless `SSH_ROOT_PASSWORD` is set).
+- Retrieve password with `sudo docker logs vulnbox-teamXX` or `sudo docker exec vulnbox-teamXX cat /etc/vulnbox/root_password`.

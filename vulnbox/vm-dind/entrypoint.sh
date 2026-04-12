@@ -2,6 +2,28 @@
 set -euo pipefail
 
 mkdir -p /var/run
+mkdir -p /run/sshd /etc/vulnbox
+
+generate_password() {
+  tr -dc 'A-Za-z0-9@#%+=' </dev/urandom | head -c 20
+}
+
+ROOT_PASSWORD="${SSH_ROOT_PASSWORD:-}"
+if [[ -z "${ROOT_PASSWORD}" ]]; then
+  ROOT_PASSWORD="$(generate_password)"
+fi
+
+echo "root:${ROOT_PASSWORD}" | chpasswd
+echo "${ROOT_PASSWORD}" >/etc/vulnbox/root_password
+chmod 600 /etc/vulnbox/root_password
+
+if [[ ! -f /etc/ssh/ssh_host_rsa_key ]]; then
+  ssh-keygen -A
+fi
+
+/usr/sbin/sshd
+echo "[vulnbox] SSH active on 0.0.0.0:22"
+echo "[vulnbox] root password: ${ROOT_PASSWORD}"
 
 # Start Docker daemon in the background (DinD)
 dockerd --host=unix:///var/run/docker.sock --storage-driver=overlay2 >/var/log/dockerd.log 2>&1 &
