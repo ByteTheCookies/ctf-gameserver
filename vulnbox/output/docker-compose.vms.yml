@@ -1,0 +1,114 @@
+name: vulnbox-vms
+
+services:
+  vulnbox-team01:
+    build:
+      context: ./vm-dind
+    image: vulnbox-dind:local
+    container_name: vulnbox-team01
+    hostname: vm-team01
+    privileged: true
+    restart: unless-stopped
+    environment:
+      TEAM_ID: "1"
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - dind-data-team01:/var/lib/docker
+    networks:
+      vulnbox_vm_net:
+        ipv4_address: 10.60.1.1
+  vulnbox-team02:
+    build:
+      context: ./vm-dind
+    image: vulnbox-dind:local
+    container_name: vulnbox-team02
+    hostname: vm-team02
+    privileged: true
+    restart: unless-stopped
+    environment:
+      TEAM_ID: "2"
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - dind-data-team02:/var/lib/docker
+    networks:
+      vulnbox_vm_net:
+        ipv4_address: 10.60.2.1
+  vulnbox-team03:
+    build:
+      context: ./vm-dind
+    image: vulnbox-dind:local
+    container_name: vulnbox-team03
+    hostname: vm-team03
+    privileged: true
+    restart: unless-stopped
+    environment:
+      TEAM_ID: "3"
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - dind-data-team03:/var/lib/docker
+    networks:
+      vulnbox_vm_net:
+        ipv4_address: 10.60.3.1
+  vulnbox-team04:
+    build:
+      context: ./vm-dind
+    image: vulnbox-dind:local
+    container_name: vulnbox-team04
+    hostname: vm-team04
+    privileged: true
+    restart: unless-stopped
+    environment:
+      TEAM_ID: "4"
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - dind-data-team04:/var/lib/docker
+    networks:
+      vulnbox_vm_net:
+        ipv4_address: 10.60.4.1
+  vulnbox-team05:
+    build:
+      context: ./vm-dind
+    image: vulnbox-dind:local
+    container_name: vulnbox-team05
+    hostname: vm-team05
+    privileged: true
+    restart: unless-stopped
+    environment:
+      TEAM_ID: "5"
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - dind-data-team05:/var/lib/docker
+    networks:
+      vulnbox_vm_net:
+        ipv4_address: 10.60.5.1
+  vulnbox-team06:
+    build:
+      context: ./vm-dind
+    image: vulnbox-dind:local
+    container_name: vulnbox-team06
+    hostname: vm-team06
+    privileged: true
+    restart: unless-stopped
+    environment:
+      TEAM_ID: "6"
+      DOCKER_TLS_CERTDIR: ""
+    volumes:
+      - dind-data-team06:/var/lib/docker
+    networks:
+      vulnbox_vm_net:
+        ipv4_address: 10.60.6.1
+
+volumes:
+  dind-data-team01:
+  dind-data-team02:
+  dind-data-team03:
+  dind-data-team04:
+  dind-data-team05:
+  dind-data-team06:
+
+networks:
+  vulnbox_vm_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.60.0.0/16

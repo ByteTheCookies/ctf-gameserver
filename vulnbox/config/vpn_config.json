@@ -1,0 +1,9 @@
+{
+  "endpoint": "51.38.98.42:51820",
+  "listen_port": 51820,
+  "teams": {
+    "start": 1,
+    "count": 6,
+    "hosts_per_team": 4
+  }
+}

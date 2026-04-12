@@ -1,0 +1,16 @@
+{
+  "endpoint": "51.38.98.42:51820",
+  "listen_port": 51820,
+  "teams": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "hosts_per_team": 4,
+  "gameserver_ip": "10.10.0.1",
+  "vm_ip_pattern": "10.60.<team>.1",
+  "host_ip_pattern": "10.81.<team>.<host>"
+}
