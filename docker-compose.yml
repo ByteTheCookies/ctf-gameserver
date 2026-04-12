@@ -143,48 +143,6 @@ services:
     ports:
       - "6666:6666"
 
-  checker_web:
-    image: ctf-gameserver:local
-    build:
-      context: .
-    profiles: [ "checker" ]
-    restart: unless-stopped
-    env_file:
-      - docker/env/common.env
-      - docker/env/checker-web.env
-    environment:
-      CTF_DBHOST: db
-      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
-      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
-      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
-    depends_on:
-      db:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-    command: [ "ctf-checkermaster" ]
-
-  checker_pwn:
-    image: ctf-gameserver:local
-    build:
-      context: .
-    profiles: [ "checker" ]
-    restart: unless-stopped
-    env_file:
-      - docker/env/common.env
-      - docker/env/checker-pwn.env
-    environment:
-      CTF_DBHOST: db
-      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
-      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
-      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
-    depends_on:
-      db:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-    command: [ "ctf-checkermaster" ]
-
   checker_ccforms_1:
     image: ctf-gameserver:local
     build:
