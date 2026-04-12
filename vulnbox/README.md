@@ -128,3 +128,17 @@ Then re-run:
 - The generated VPN profiles are key material; handle and distribute them securely.
 - This setup is isolated from the main project compose stack.
 - Persist firewall rules after reboot (`iptables-persistent` or equivalent).
+
+## 6) One-shot fix for external host -> VM ping
+
+Run on VPS:
+
+```bash
+sudo ./vulnbox/scripts/fix_external_host_to_vm.sh --apply
+```
+
+Check mode:
+
+```bash
+sudo ./vulnbox/scripts/fix_external_host_to_vm.sh --check
+```
