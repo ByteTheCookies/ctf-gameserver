@@ -56,6 +56,12 @@ We always aim to keep our Python dependencies compatible with the versions packa
 Debian-based distributions are our primary target, but the Python code should generally be
 platform-independent.
 
+Docker Compose
+--------------
+A containerized baseline infrastructure is available via `docker-compose.yml` in this repository. It includes
+PostgreSQL, Web, Controller, and Submission services, plus optional profiles for Checker and VPN Status.
+See `docker/README.md` for setup and usage.
+
 Security
 --------
 Should you encounter any security vulnerabilities in the Gameserver, please report them to us privately.

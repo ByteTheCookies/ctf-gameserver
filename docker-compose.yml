@@ -1,0 +1,215 @@
+name: ctf-gameserver
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ctf_gameserver}
+      POSTGRES_USER: ${POSTGRES_USER:-ctf_gameserver}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ctf_gameserver} -d ${POSTGRES_DB:-ctf_gameserver}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    image: ctf-gameserver:local
+    build:
+      context: .
+    restart: "no"
+    env_file:
+      - docker/env/common.env
+    environment:
+      CTF_DBHOST: db
+      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+      DJANGO_SETTINGS_MODULE: prod_settings
+      PYTHONPATH: /app/docker/web-settings:/app/src
+    depends_on:
+      db:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - python -m django migrate auth --noinput && python -m django migrate --run-syncdb --noinput
+
+  collectstatic:
+    image: ctf-gameserver:local
+    build:
+      context: .
+    restart: "no"
+    env_file:
+      - docker/env/common.env
+    environment:
+      CTF_DBHOST: db
+      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+      DJANGO_SETTINGS_MODULE: prod_settings
+      PYTHONPATH: /app/docker/web-settings:/app/src
+      CTF_STATIC_ROOT: /data/static
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ["python", "-m", "django", "collectstatic", "--noinput"]
+    volumes:
+      - static-data:/data/static
+
+  web:
+    image: ctf-gameserver:local
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - docker/env/common.env
+    environment:
+      CTF_DBHOST: db
+      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+      DJANGO_SETTINGS_MODULE: prod_settings
+      PYTHONPATH: /app/docker/web-settings:/app/src
+      CTF_STATIC_ROOT: /data/static
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      collectstatic:
+        condition: service_completed_successfully
+    command: ["gunicorn", "ctf_gameserver.web.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2"]
+    volumes:
+      - static-data:/data/static
+      - uploads-data:/data/uploads
+      - team-downloads-data:/data/team_downloads
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_started
+      collectstatic:
+        condition: service_completed_successfully
+    ports:
+      - "8000:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - static-data:/data/static:ro
+      - uploads-data:/data/uploads:ro
+
+  controller:
+    image: ctf-gameserver:local
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - docker/env/common.env
+    environment:
+      CTF_DBHOST: db
+      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["ctf-controller"]
+
+  submission:
+    image: ctf-gameserver:local
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - docker/env/common.env
+    environment:
+      CTF_DBHOST: db
+      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["ctf-submission", "--listen", "0.0.0.0:6666"]
+    ports:
+      - "6666:6666"
+
+  checker_web:
+    image: ctf-gameserver:local
+    build:
+      context: .
+    profiles: ["checker"]
+    restart: unless-stopped
+    env_file:
+      - docker/env/common.env
+      - docker/env/checker-web.env
+    environment:
+      CTF_DBHOST: db
+      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["ctf-checkermaster"]
+
+  checker_pwn:
+    image: ctf-gameserver:local
+    build:
+      context: .
+    profiles: ["checker"]
+    restart: unless-stopped
+    env_file:
+      - docker/env/common.env
+      - docker/env/checker-pwn.env
+    environment:
+      CTF_DBHOST: db
+      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["ctf-checkermaster"]
+
+  vpnstatus:
+    image: ctf-gameserver:local
+    build:
+      context: .
+    profiles: ["vpnstatus"]
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW
+    env_file:
+      - docker/env/common.env
+      - docker/env/vpnstatus.env
+    environment:
+      CTF_DBHOST: db
+      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ["ctf-vpnstatus"]
+
+volumes:
+  postgres-data:
+  static-data:
+  uploads-data:
+  team-downloads-data:

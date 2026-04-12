@@ -1,0 +1,17 @@
+.git
+.github
+.devcontainer.json
+docs_site
+build
+dist
+*.pyc
+__pycache__
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+tests
+go
+debian
+docs
+vunbox
