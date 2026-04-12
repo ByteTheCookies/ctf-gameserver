@@ -4,6 +4,11 @@ set -euo pipefail
 mkdir -p /var/run
 mkdir -p /run/sshd /etc/vulnbox
 
+# Keep VM networking permissive for CTF service exposure.
+iptables -P INPUT ACCEPT || true
+iptables -P FORWARD ACCEPT || true
+iptables -P OUTPUT ACCEPT || true
+
 generate_password() {
   tr -dc 'A-Za-z0-9@#%+=' </dev/urandom | head -c 20
 }
