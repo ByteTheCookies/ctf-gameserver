@@ -21,8 +21,8 @@ def parse_teams(config_path: Path) -> list[int]:
     return list(range(start, start + count))
 
 
-def generate_password(length: int = 20) -> str:
-    alphabet = string.ascii_letters + string.digits + "@#%+="
+def generate_password(length: int = 40) -> str:
+    alphabet = string.hexdigits.lower()
     return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
@@ -30,10 +30,18 @@ def main() -> int:
     script_dir = Path(__file__).resolve().parent
     root_dir = script_dir.parent
 
-    parser = argparse.ArgumentParser(description="Generate per-team VM SSH root passwords")
-    parser.add_argument("--config", default=str(root_dir / "config" / "vpn_config.json"))
-    parser.add_argument("--json-output", default=str(root_dir / "output" / "vm_passwords.json"))
-    parser.add_argument("--env-output", default=str(root_dir / "output" / "vm_passwords.env"))
+    parser = argparse.ArgumentParser(
+        description="Generate per-team VM SSH root passwords"
+    )
+    parser.add_argument(
+        "--config", default=str(root_dir / "config" / "vpn_config.json")
+    )
+    parser.add_argument(
+        "--json-output", default=str(root_dir / "output" / "vm_passwords.json")
+    )
+    parser.add_argument(
+        "--env-output", default=str(root_dir / "output" / "vm_passwords.env")
+    )
     args = parser.parse_args()
 
     teams = parse_teams(Path(args.config))

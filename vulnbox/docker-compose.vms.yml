@@ -12,6 +12,7 @@ services:
     environment:
       TEAM_ID: "1"
       DOCKER_TLS_CERTDIR: ""
+      SSH_ROOT_PASSWORD: "0fe7adb02a0cc2bfaac7c7c1120b101fd18b727e"
     volumes:
       - dind-data-team01:/var/lib/docker
     networks:
@@ -28,6 +29,7 @@ services:
     environment:
       TEAM_ID: "2"
       DOCKER_TLS_CERTDIR: ""
+      SSH_ROOT_PASSWORD: "aea80fed39114bbcb97f1ebafd0f0d9eeed7bfb7"
     volumes:
       - dind-data-team02:/var/lib/docker
     networks:
@@ -44,6 +46,7 @@ services:
     environment:
       TEAM_ID: "3"
       DOCKER_TLS_CERTDIR: ""
+      SSH_ROOT_PASSWORD: "dd0bf6a5acfaa1abbcc3fecc41fb7e5a511feafd"
     volumes:
       - dind-data-team03:/var/lib/docker
     networks:
@@ -60,6 +63,7 @@ services:
     environment:
       TEAM_ID: "4"
       DOCKER_TLS_CERTDIR: ""
+      SSH_ROOT_PASSWORD: "abb8abfb78edaa5e0a432d2c3b839c15a5aad6fc"
     volumes:
       - dind-data-team04:/var/lib/docker
     networks:
@@ -76,6 +80,7 @@ services:
     environment:
       TEAM_ID: "5"
       DOCKER_TLS_CERTDIR: ""
+      SSH_ROOT_PASSWORD: "ec4c94ef26ea95dce9128bef4e50a197a5ddc35d"
     volumes:
       - dind-data-team05:/var/lib/docker
     networks:
@@ -92,6 +97,7 @@ services:
     environment:
       TEAM_ID: "6"
       DOCKER_TLS_CERTDIR: ""
+      SSH_ROOT_PASSWORD: "fa518bc7de20bad03f9b2fecfcececcbaa4b8cde"
     volumes:
       - dind-data-team06:/var/lib/docker
     networks:
