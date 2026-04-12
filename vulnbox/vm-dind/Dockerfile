@@ -5,10 +5,20 @@ ENV DOCKER_TLS_CERTDIR=
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       ca-certificates curl iptables iproute2 uidmap tini docker.io docker-compose openssh-server \
-    && mkdir -p /usr/local/lib/docker/cli-plugins \
-    && printf '%s\n' '#!/bin/sh' 'exec /usr/bin/docker-compose "$@"' > /usr/local/lib/docker/cli-plugins/docker-compose \
-    && chmod +x /usr/local/lib/docker/cli-plugins/docker-compose \
+       ca-certificates curl iptables iproute2 uidmap tini docker.io openssh-server \
+    && (apt-get install -y --no-install-recommends docker-compose-plugin || true) \
+    && if ! docker compose version >/dev/null 2>&1; then \
+         arch="$(dpkg --print-architecture)"; \
+         case "$arch" in \
+           amd64) compose_arch="x86_64" ;; \
+           arm64) compose_arch="aarch64" ;; \
+           *) echo "Unsupported architecture for compose plugin: $arch" >&2; exit 1 ;; \
+         esac; \
+         mkdir -p /usr/libexec/docker/cli-plugins; \
+         curl -fsSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-${compose_arch}" \
+           -o /usr/libexec/docker/cli-plugins/docker-compose; \
+         chmod +x /usr/libexec/docker/cli-plugins/docker-compose; \
+       fi \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /run/sshd /etc/ssh/sshd_config.d /etc/vulnbox \
