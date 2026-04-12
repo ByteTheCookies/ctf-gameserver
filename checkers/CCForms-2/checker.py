@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import logging
 import traceback
 import uuid
 import requests
@@ -8,6 +9,7 @@ import hashlib
 import os
 from copy import deepcopy
 
+from ctf_gameserver import checkerlib
 from checklib import *
 from utils import *
 
@@ -15,6 +17,7 @@ FRONTEND_PORT = 3000
 BACKEND_PORT = 3001
 
 os.makedirs('data', exist_ok=True)
+STATE_KEY_PREFIX = "ccforms2"
 def check_sla(host):
 
     try:
@@ -229,7 +232,7 @@ def check_sla(host):
         quit(Status.DOWN, 'Service is down', traceback.format_exc() )
 
 
-def put_flag(host, flag):
+def put_flag(host, flag, tick):
 
     clientform = ClientSession(host, BACKEND_PORT)
     clientans = ClientSession(host, BACKEND_PORT)
@@ -249,29 +252,19 @@ def put_flag(host, flag):
             f"Invalid answer id - {ansid}",
         )
 
-    flag_hash = hashlib.md5(flag.encode()).hexdigest()
-
-    with open(f"data/{flag_hash}", "w") as f:
-        json.dump({
-            "creds": clientform.export_credentials(),
-            "form_id": form["id"]
-            }, f)
-
-    # Post flag id to game server
-    try:
-        post_flag_id("CCForms-2", team_id, {"answer_id": ansid, "form_id": form["id"]})
-    except Exception as e:
-        quit(Status.ERROR, "Failed to post flag id", str(e))
+    checkerlib.store_state(
+        f"{STATE_KEY_PREFIX}:{tick}",
+        {"creds": clientform.export_credentials(), "form_id": form["id"], "answer_id": ansid},
+    )
+    checkerlib.set_flagid(json.dumps({"answer_id": ansid, "form_id": form["id"]}))
 
 
-def get_flag(host, flag):
-
-    flag_hash = hashlib.md5(flag.encode()).hexdigest()
-
-    with open(f"data/{flag_hash}", "r") as f:
-        data = json.load(f)
-        creds = data["creds"]
-        form_id = data["form_id"]
+def get_flag(host, flag, tick):
+    data = checkerlib.load_state(f"{STATE_KEY_PREFIX}:{tick}")
+    if data is None:
+        return False
+    creds = data["creds"]
+    form_id = data["form_id"]
 
     client = ClientSession(host, BACKEND_PORT, creds)
     client.login()
@@ -280,55 +273,67 @@ def get_flag(host, flag):
     
 
     if len(answers) == 0:
-        quit(Status.DOWN, "No answers found", "No answers found")
+        return False
     
     for a in answers:
         if 'name' in a["answer"][0] and a["answer"][0]['name'] == flag:
-            quit(Status.OK, 'OK')
+            return True
         if a["answer"][0] == flag:
-            quit(Status.OK, 'OK')
+            return True
 
-    quit(Status.DOWN, "Flag not found", f"Flag not found in this answers: {answers}")
+    return False
 
-    pass
+def _map_legacy_system_exit(exc: SystemExit) -> checkerlib.CheckResult:
+    try:
+        code = int(exc.code)
+    except Exception:  # noqa: BLE001
+        code = Status.ERROR.value
 
+    if code == Status.OK.value:
+        return checkerlib.CheckResult.OK
+    if code == Status.DOWN.value:
+        return checkerlib.CheckResult.DOWN
+    return checkerlib.CheckResult.FAULTY
+
+
+class CCForms2Checker(checkerlib.BaseChecker):
+
+    def place_flag(self, tick):
+        flag = checkerlib.get_flag(tick)
+        try:
+            put_flag(self.ip, flag, tick)
+            return checkerlib.CheckResult.OK
+        except SystemExit as exc:
+            return _map_legacy_system_exit(exc)
+        except Exception:  # noqa: BLE001
+            logging.exception("CCForms-2 place_flag failed")
+            return checkerlib.CheckResult.DOWN
+
+    def check_service(self):
+        try:
+            check_sla(self.ip)
+            return checkerlib.CheckResult.OK
+        except SystemExit as exc:
+            return _map_legacy_system_exit(exc)
+        except Exception:  # noqa: BLE001
+            logging.exception("CCForms-2 check_service failed")
+            return checkerlib.CheckResult.DOWN
+
+    def check_flag(self, tick):
+        flag = checkerlib.get_flag(tick)
+        try:
+            if get_flag(self.ip, flag, tick):
+                return checkerlib.CheckResult.OK
+            return checkerlib.CheckResult.FLAG_NOT_FOUND
+        except SystemExit as exc:
+            result = _map_legacy_system_exit(exc)
+            if result == checkerlib.CheckResult.DOWN:
+                return checkerlib.CheckResult.FLAG_NOT_FOUND
+            return result
+        except Exception:  # noqa: BLE001
+            logging.exception("CCForms-2 check_flag failed")
+            return checkerlib.CheckResult.DOWN
 
 
 if __name__ == "__main__":
-
-    if "dev" in sys.argv:
-        host = "127.0.0.1"
-        flag = "B" * 31 + "="
-        team_id = "X"
-
-        check_sla(host)
-        put_flag(host, flag)
-        get_flag(host, flag)
-        quit(Status.OK, "OK")
-
-    data = get_data()
-    action = data["action"]
-    team_id = data["teamId"]
-    host = "10.60." + team_id + ".1"
-
-    if action == Action.CHECK_SLA.name:
-        try:
-            check_sla(host)
-        except Exception as e:
-            quit(Status.DOWN, "Cannot check SLA", str(e))
-    elif action == Action.PUT_FLAG.name:
-        flag = data["flag"]
-        try:
-            put_flag(host, flag)
-        except Exception as e:
-            quit(Status.DOWN, "Cannot put flag", str(e))
-    elif action == Action.GET_FLAG.name:
-        flag = data["flag"]
-        try:
-            get_flag(host, flag)
-        except Exception as e:
-            quit(Status.DOWN, "Cannot get flag", str(e))
-    else:
-        quit(Status.ERROR, "System error", "Unknown action: " + action)
-
-    quit(Status.OK)
+    checkerlib.run_check(CCForms2Checker)
