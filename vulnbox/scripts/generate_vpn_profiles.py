@@ -71,7 +71,7 @@ def shutil_which(binary: str) -> str | None:
     return None
 
 
-def parse_config(path: Path) -> tuple[str, int, int, int]:
+def parse_config(path: Path) -> tuple[str, int, int, int, int, bool]:
     raw = json.loads(path.read_text())
     endpoint = raw.get("endpoint", "vpn.example.ctf:51820")
     port = int(raw.get("listen_port", 51820))
@@ -79,6 +79,7 @@ def parse_config(path: Path) -> tuple[str, int, int, int]:
     start_team = int(raw["teams"]["start"])
     count_team = int(raw["teams"]["count"])
     hosts_per_team = int(raw["teams"]["hosts_per_team"])
+    local_vulnboxes = bool(raw.get("local_vulnboxes", True))
 
     if start_team < 1 or start_team > 254:
         raise ValueError("teams.start must be in [1, 254]")
@@ -87,7 +88,7 @@ def parse_config(path: Path) -> tuple[str, int, int, int]:
     if hosts_per_team < 1 or hosts_per_team > 254:
         raise ValueError("teams.hosts_per_team must be in [1, 254]")
 
-    return endpoint, port, start_team, count_team, hosts_per_team
+    return endpoint, port, start_team, count_team, hosts_per_team, local_vulnboxes
 
 
 def make_teams(start_team: int, count_team: int, hosts_per_team: int) -> List[Team]:
@@ -126,7 +127,7 @@ def main() -> int:
 
     ensure_wg()
 
-    endpoint, listen_port, start_team, count_team, hosts_per_team = parse_config(Path(args.config))
+    endpoint, listen_port, start_team, count_team, hosts_per_team, local_vulnboxes = parse_config(Path(args.config))
     teams = make_teams(start_team, count_team, hosts_per_team)
 
     out = Path(args.output_dir)
@@ -158,7 +159,7 @@ def main() -> int:
                 )
             )
 
-    server_peers = vm_peers + host_peers
+    server_peers = host_peers if local_vulnboxes else (vm_peers + host_peers)
     server_conf = [
         "[Interface]",
         f"Address = {server.address}",
@@ -201,7 +202,7 @@ def main() -> int:
             "",
             render_peer_block(
                 server.public_key,
-                ["10.10.0.1/32", "10.60.0.0/16", f"10.81.{team_num}.{host_num}/32"],
+                ["10.10.0.1/32", "10.60.0.0/16", "10.81.0.0/16"],
                 endpoint=server_endpoint,
             ),
             "",
@@ -214,6 +215,7 @@ def main() -> int:
     summary = {
         "endpoint": endpoint,
         "listen_port": listen_port,
+        "local_vulnboxes": local_vulnboxes,
         "teams": [t.team_id for t in teams],
         "hosts_per_team": hosts_per_team,
         "gameserver_ip": "10.10.0.1",

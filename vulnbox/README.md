@@ -16,6 +16,7 @@ Prerequisites:
 - `wg` from `wireguard-tools`
 
 Configure teams and members in `config/vpn_config.json`.
+Set `local_vulnboxes: true` when team VMs are local Docker containers on the same VPS as gameserver/VPN.
 
 Run:
 
@@ -29,6 +30,9 @@ Generated files:
 - `output/wireguard/teams/teamXX/vm/wg0.conf`
 - `output/wireguard/teams/teamXX/hosts/hostYY.conf`
 - `docker-compose.vms.yml` (multi-team DinD compose generated from the same team range)
+
+With `local_vulnboxes: true`, `gameserver/wg0.conf` does not include VM peers (`10.60.<team>.1/32`),
+so `wg-quick` will not conflict with local Docker routes.
 
 ## 2) Start a single Debian DinD vulnbox VM (manual)
 

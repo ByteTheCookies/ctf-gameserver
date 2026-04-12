@@ -1,6 +1,7 @@
 {
   "endpoint": "51.38.98.42:51820",
   "listen_port": 51820,
+  "local_vulnboxes": true,
   "teams": {
     "start": 1,
     "count": 6,
