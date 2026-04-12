@@ -41,8 +41,22 @@ find_network_for_subnet() {
     return 1
 }
 
+find_bridge_from_kernel_route() {
+  local wanted_subnet="$1"
+  ip -4 route show "$wanted_subnet" 2>/dev/null | awk '
+    {
+      for (i = 1; i <= NF; i++) {
+        if ($i == "dev" && (i + 1) <= NF) {
+          print $(i + 1)
+          exit
+        }
+      }
+    }
+  '
+}
+
 if [[ -z "$NETWORK_NAME" ]]; then
-    NETWORK_NAME="$(find_network_for_subnet "$VM_SUBNET" || true)"
+  NETWORK_NAME="$(find_network_for_subnet "$VM_SUBNET" || true)"
 fi
 
 if [[ -z "$NETWORK_NAME" ]]; then
@@ -59,8 +73,11 @@ fi
 
 BR_IF="$(docker network inspect "$NETWORK_NAME" -f '{{index .Options "com.docker.network.bridge.name"}}' 2>/dev/null || true)"
 if [[ -z "$BR_IF" || "$BR_IF" == "<no value>" ]]; then
-    NET_ID="$(docker network inspect "$NETWORK_NAME" -f '{{.Id}}' | cut -c1-12)"
-    BR_IF="br-${NET_ID}"
+  BR_IF="$(find_bridge_from_kernel_route "$VM_SUBNET" || true)"
+fi
+if [[ -z "$BR_IF" || "$BR_IF" == "<no value>" ]]; then
+  NET_ID="$(docker network inspect "$NETWORK_NAME" -f '{{.Id}}' | cut -c1-12)"
+  BR_IF="br-${NET_ID}"
 fi
 
 if ! ip link show "$BR_IF" >/dev/null 2>&1; then
