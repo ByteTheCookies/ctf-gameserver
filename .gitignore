@@ -32,3 +32,6 @@ __pycache__/
 
 # MkDocs HTML build
 /docs_site/
+
+
+output
