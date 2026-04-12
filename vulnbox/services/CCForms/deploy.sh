@@ -9,24 +9,24 @@ MARKER_FILE="${STATE_DIR}/ccforms_bootstrapped"
 mkdir -p "$STATE_DIR"
 
 if ! docker compose version >/dev/null 2>&1; then
-  echo "[ccforms] docker compose plugin is required but not available" >&2
-  exit 1
+    echo "[ccforms] docker compose plugin is required but not available" >&2
+    exit 1
 fi
 
 if [[ ! -f "$SECRET_FILE" ]]; then
-  od -An -N16 -tx1 /dev/urandom | tr -d ' \n' >"$SECRET_FILE"
-  chmod 600 "$SECRET_FILE"
+    od -An -N16 -tx1 /dev/urandom | tr -d ' \n' >"$SECRET_FILE"
+    chmod 600 "$SECRET_FILE"
 fi
 JWT_SECRET="$(cat "$SECRET_FILE")"
 
 if [[ ! -f "$ENV_FILE" ]]; then
-  printf 'JWT_SECRET=%s\n' "$JWT_SECRET" >"$ENV_FILE"
-  chmod 600 "$ENV_FILE"
+    printf 'JWT_SECRET=%s\n' "$JWT_SECRET" >"$ENV_FILE"
+    chmod 600 "$ENV_FILE"
 fi
 
 if [[ ! -f "$MARKER_FILE" ]]; then
-  docker compose up -d --build
-  touch "$MARKER_FILE"
+    docker-compose up -d --build
+    touch "$MARKER_FILE"
 else
-  docker compose up -d
+    docker-compose up -d
 fi

@@ -20,7 +20,7 @@ COPY vm-dind/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY services/CCForms /root/CCForms
 RUN chmod +x /usr/local/bin/entrypoint.sh
 RUN chmod +x /root/CCForms/deploy.sh
-RUN docker compose version >/dev/null
+RUN docker-compose version >/dev/null
 
 VOLUME ["/var/lib/docker"]
 
