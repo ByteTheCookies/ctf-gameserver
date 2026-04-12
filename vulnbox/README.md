@@ -77,6 +77,40 @@ This script enables:
 - `FORWARD` rules between `wg0` and `10.60.0.0/16` + `10.81.0.0/16`
 - NAT (`MASQUERADE`) for those subnets out of `wg0`
 
+## 5) Run connectivity checks from VPS/gameserver side
+
+Use the helper script to test each `10.60.<team>.1`:
+
+```bash
+./vulnbox/scripts/check_vm_connectivity.sh
+```
+
+Optional checks:
+
+```bash
+./vulnbox/scripts/check_vm_connectivity.sh --tcp-port 8080
+./vulnbox/scripts/check_vm_connectivity.sh --http-path /healthz
+```
+
+Dry-run target list:
+
+```bash
+./vulnbox/scripts/check_vm_connectivity.sh --dry-run
+```
+
+If all VM pings fail but `gameserver` is reachable, you likely have route overlap on `10.60.0.0/16`
+(e.g. `wg0` wins over Docker bridge). Install local `/32` routes for each VM IP:
+
+```bash
+sudo ./vulnbox/scripts/setup_local_vm_routes.sh
+```
+
+Then re-run:
+
+```bash
+./vulnbox/scripts/check_vm_connectivity.sh
+```
+
 ## Notes
 
 - DinD requires `privileged: true`.
