@@ -12,6 +12,7 @@ This setup runs Gameserver + WireGuard + team vulnbox VMs on the same VPS.
 
 - `config/vpn_config.json`: teams/hosts and VPN endpoint config
 - `scripts/setup.sh`: generate VPN profiles + multi-team compose
+- `scripts/generate_vm_passwords.py`: generate per-team VM root passwords
 - `scripts/setup_vps_routing.sh`: apply/check VPS routing+iptables rules
 - `scripts/check_vm_connectivity.sh`: check `10.60.<team>.1` reachability
 
@@ -22,6 +23,13 @@ This setup runs Gameserver + WireGuard + team vulnbox VMs on the same VPS.
 ```bash
 ./vulnbox/scripts/setup.sh
 ```
+
+This also generates:
+
+- `vulnbox/output/vm_passwords.json`
+- `vulnbox/output/vm_passwords.env`
+
+and injects per-team `SSH_ROOT_PASSWORD` into `docker-compose.vms.yml`.
 
 2. Start vulnbox VMs (rootful Docker):
 
@@ -56,6 +64,8 @@ sudo ./vulnbox/scripts/setup_vps_routing.sh --check
 - `local_vulnboxes: true` in `vpn_config.json` keeps `10.60.x.1` local on VPS and avoids WG route conflicts.
 - Host profiles are generated with `AllowedIPs = 10.10.0.1/32, 10.60.0.0/16, 10.81.0.0/16`.
 - Distribute only per-team host profiles from `output/wireguard/teams/teamXX/hosts/`.
+- Treat `output/vm_passwords.json` and `output/vm_passwords.env` as secrets.
 - Each VM starts `sshd` on port `22` with `root` password auth enabled.
-- Root password is auto-generated at container start (unless `SSH_ROOT_PASSWORD` is set).
-- Retrieve password with `sudo docker logs vulnbox-teamXX` or `sudo docker exec vulnbox-teamXX cat /etc/vulnbox/root_password`.
+- Root password is initialized only on first boot (unless `SSH_ROOT_PASSWORD` is set on first boot).
+- Password is stored in `/etc/vulnbox/root_password` inside VM and not printed in logs.
+- Retrieve it with `sudo docker exec vulnbox-teamXX cat /etc/vulnbox/root_password`.

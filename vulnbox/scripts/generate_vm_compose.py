@@ -25,6 +25,13 @@ def parse_teams(config_path: Path) -> list[int]:
     return list(range(start, start + count))
 
 
+def load_passwords(path: Path) -> dict[str, str]:
+    if not path.exists():
+        raise FileNotFoundError(f"Passwords file not found: {path}")
+    raw = json.loads(path.read_text())
+    return {str(k): str(v) for k, v in raw.items()}
+
+
 def main() -> int:
     script_dir = Path(__file__).resolve().parent
     root_dir = script_dir.parent
@@ -40,9 +47,18 @@ def main() -> int:
         default=str(root_dir / "docker-compose.vms.yml"),
         help="Output compose file",
     )
+    parser.add_argument(
+        "--passwords-json",
+        default=str(root_dir / "output" / "vm_passwords.json"),
+        help="Path to JSON map of team -> SSH root password",
+    )
     args = parser.parse_args()
 
     teams = parse_teams(Path(args.config))
+    passwords = load_passwords(Path(args.passwords_json))
+    missing = [f"{team:02d}" for team in teams if f"{team:02d}" not in passwords]
+    if missing:
+        raise ValueError(f"Missing passwords for team IDs: {', '.join(missing)}")
 
     out = Path(args.output).resolve()
     vm_dind_dir = (root_dir / "vm-dind").resolve()
@@ -68,6 +84,7 @@ def main() -> int:
                 "    environment:",
                 f"      TEAM_ID: \"{team}\"",
                 "      DOCKER_TLS_CERTDIR: \"\"",
+                f"      SSH_ROOT_PASSWORD: \"{passwords[team_s]}\"",
                 "    volumes:",
                 f"      - dind-data-team{team_s}:/var/lib/docker",
                 "    networks:",

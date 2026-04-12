@@ -9,13 +9,19 @@ generate_password() {
 }
 
 ROOT_PASSWORD="${SSH_ROOT_PASSWORD:-}"
-if [[ -z "${ROOT_PASSWORD}" ]]; then
-  ROOT_PASSWORD="$(generate_password)"
-fi
+if [[ ! -f /etc/vulnbox/root_password_initialized ]]; then
+  if [[ -z "${ROOT_PASSWORD}" ]]; then
+    ROOT_PASSWORD="$(generate_password)"
+  fi
 
-echo "root:${ROOT_PASSWORD}" | chpasswd
-echo "${ROOT_PASSWORD}" >/etc/vulnbox/root_password
-chmod 600 /etc/vulnbox/root_password
+  echo "root:${ROOT_PASSWORD}" | chpasswd
+  echo "${ROOT_PASSWORD}" >/etc/vulnbox/root_password
+  chmod 600 /etc/vulnbox/root_password
+  touch /etc/vulnbox/root_password_initialized
+  echo "[vulnbox] root password initialized (first boot)"
+else
+  echo "[vulnbox] root password already initialized"
+fi
 
 if [[ ! -f /etc/ssh/ssh_host_rsa_key ]]; then
   ssh-keygen -A
@@ -23,7 +29,6 @@ fi
 
 /usr/sbin/sshd
 echo "[vulnbox] SSH active on 0.0.0.0:22"
-echo "[vulnbox] root password: ${ROOT_PASSWORD}"
 
 # Start Docker daemon in the background (DinD)
 dockerd --host=unix:///var/run/docker.sock --storage-driver=overlay2 >/var/log/dockerd.log 2>&1 &
