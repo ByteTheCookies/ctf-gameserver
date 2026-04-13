@@ -33,6 +33,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - default
+      - vulnbox_vm_net
     command:
       - sh
       - -c
@@ -56,6 +59,9 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+    networks:
+      - default
+      - vulnbox_vm_net
     command: [ "python", "-m", "django", "collectstatic", "--noinput" ]
     volumes:
       - static-data:/data/static
@@ -82,6 +88,9 @@ services:
         condition: service_completed_successfully
       collectstatic:
         condition: service_completed_successfully
+    networks:
+      - default
+      - vulnbox_vm_net
     command: [ "gunicorn", "ctf_gameserver.web.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2" ]
     volumes:
       - static-data:/data/static
@@ -120,6 +129,9 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    networks:
+      - default
+      - vulnbox_vm_net
     command: [ "ctf-controller" ]
 
   submission:
@@ -139,6 +151,9 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    networks:
+      - default
+      - vulnbox_vm_net
     command: [ "ctf-submission", "--listen", "0.0.0.0:6666" ]
     ports:
       - "6666:6666"
@@ -162,6 +177,9 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    networks:
+      - default
+      - vulnbox_vm_net
     command: [ "ctf-checkermaster" ]
 
   checker_ccforms_2:
@@ -183,6 +201,9 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    networks:
+      - default
+      - vulnbox_vm_net
     command: [ "ctf-checkermaster" ]
 
   vpnstatus:
@@ -206,6 +227,9 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    networks:
+      - default
+      - vulnbox_vm_net
     command: [ "ctf-vpnstatus" ]
 
 volumes:
@@ -213,3 +237,8 @@ volumes:
   static-data:
   uploads-data:
   team-downloads-data:
+
+networks:
+  vulnbox_vm_net:
+    external: true
+    name: vulnbox_vm_net
