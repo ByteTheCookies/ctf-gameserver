@@ -14,6 +14,8 @@ from pathlib import Path
 import resend
 from dotenv import load_dotenv
 
+fruits = ["Cookie", "Apple", "Berry", "Banana", "Grape", "Kiwi", "Orange"]
+
 
 def parse_config(path: Path) -> tuple[list[int], dict[int, list[str]], str]:
     raw = json.loads(path.read_text())
@@ -70,25 +72,16 @@ def build_team_zip(
     )
 
     contents = [
-        f"Team {team_id:02d} configuration bundle",
-        "",
-        "Contents:",
-        "- hosts/: WireGuard configs for player hosts",
-        "- vm_root_password.txt: VM root password",
-        "",
-        f"VPN endpoint: {endpoint}",
-        f"VM IP: 10.60.{team_id}.1",
-        "Host IP pattern: 10.81.<team>.<host>",
+        f"VM {team_id} - Team {fruits[team_id]}",
+        f"ID: {team_id}",
+        f"IP: 10.60.{team_id}.1",
+        f"Password VM: {password}",
     ]
-    if password is None:
-        contents[5] = "- vm_root_password.txt: not included"
 
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("README.txt", "\n".join(contents) + "\n")
         for host_conf in sorted(host_dir.glob("*.conf")):
             archive.write(host_conf, arcname=f"hosts/{host_conf.name}")
-        if password is not None:
-            archive.writestr("vm_root_password.txt", password + "\n")
 
     return zip_path
 
