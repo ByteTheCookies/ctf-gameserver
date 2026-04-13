@@ -57,7 +57,8 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! /root/CCForms/deploy.sh >/var/log/ccforms-compose.log 2>&1; then
+
+if ! cd /root/CCForms; /root/CCForms/deploy.sh >/var/log/ccforms-compose.log 2>&1; then
   echo "[vulnbox] CCForms deploy failed. See /var/log/ccforms-compose.log" >&2
 fi
 
