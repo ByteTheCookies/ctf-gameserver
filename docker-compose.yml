@@ -15,6 +15,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    networks:
+      - default
+      - vulnbox_vm_net
 
   migrate:
     image: ctf-gameserver:local
