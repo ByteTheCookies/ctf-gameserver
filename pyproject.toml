@@ -21,7 +21,9 @@ dependencies = [
     "Django == 4.2.*",
     "Markdown",
     "Pillow",
+    "python-dotenv",
     "prometheus_client",
+    "resend",
     "requests",
 ]
 

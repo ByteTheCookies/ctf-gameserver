@@ -70,3 +70,20 @@ clean:
 	rm -rf src/ctf_gameserver/web/static/ext
 	rm -rf build dist src/ctf_gameserver.egg-info
 	rm -rf docs_site
+
+
+up_infra:
+	@echo Starting gameserver infrastructure using Docker Compose...
+	docker compose -f docker-compose.yml up -d
+	@echo Gameserver infrastructure started.
+	@echo Starting vulnbox infrastructure using Docker Compose...
+	docker compose -f vulnbox/docker-compose.vms.yml up -d
+	@echo Vulnbox infrastructure started.
+
+down_infra:
+	@echo Stopping gameserver infrastructure using Docker Compose...
+	docker compose -f docker-compose.yml down
+	@echo Gameserver infrastructure stopped.
+	@echo Stopping vulnbox infrastructure using Docker Compose...
+	docker compose -f vulnbox/docker-compose.vms.yml down
+	@echo Vulnbox infrastructure stopped.

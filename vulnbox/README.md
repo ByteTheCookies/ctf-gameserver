@@ -11,8 +11,10 @@ This setup runs Gameserver + WireGuard + team vulnbox VMs on the same VPS.
 ## Files
 
 - `config/vpn_config.json`: teams/hosts and VPN endpoint config
+- `config/vpn_config.json`: also supports `team_contacts` to define recipient email lists per team
 - `scripts/setup.sh`: generate VPN profiles + multi-team compose
 - `scripts/generate_vm_passwords.py`: generate per-team VM root passwords
+- `scripts/send_team_configs.py`: package per-team configs into ZIPs and send them via Resend
 - `scripts/setup_vps_routing.sh`: apply/check VPS routing+iptables rules
 - `scripts/check_vm_connectivity.sh`: check `10.60.<team>.1` reachability
 
@@ -64,6 +66,16 @@ sudo ./vulnbox/scripts/setup_vps_routing.sh --apply
 sudo ./vulnbox/scripts/setup_vps_routing.sh --check
 ./vulnbox/scripts/check_vm_connectivity.sh
 ```
+
+6. Send team configuration bundles:
+
+```bash
+RESEND_API_KEY=your_api_key \
+RESEND_FROM='CTF Infra <infra@example.com>' \
+python3 ./vulnbox/scripts/send_team_configs.py
+```
+
+Use `--dry-run` to only generate ZIPs and print recipients without sending.
 
 ## Notes
 

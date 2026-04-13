@@ -36,3 +36,5 @@ __pycache__/
 
 output
 docker-compose.vms.yml
+
+.env

@@ -60,7 +60,9 @@ def wg_keypair() -> tuple[str, str]:
 
 def ensure_wg() -> None:
     if not shutil_which("wg"):
-        raise RuntimeError("wg binary not found. Install wireguard-tools before running this script.")
+        raise RuntimeError(
+            "wg binary not found. Install wireguard-tools before running this script."
+        )
 
 
 def shutil_which(binary: str) -> str | None:
@@ -81,9 +83,9 @@ def parse_config(path: Path) -> tuple[str, int, int, int, int, bool]:
     hosts_per_team = int(raw["teams"]["hosts_per_team"])
     local_vulnboxes = bool(raw.get("local_vulnboxes", True))
 
-    if start_team < 1 or start_team > 254:
-        raise ValueError("teams.start must be in [1, 254]")
-    if count_team < 1 or (start_team + count_team - 1) > 254:
+    if start_team < 0 or start_team > 254:
+        raise ValueError("teams.start must be in [0, 254]")
+    if count_team < 0 or (start_team + count_team - 1) > 254:
         raise ValueError("teams.start + teams.count - 1 must be <= 254")
     if hosts_per_team < 1 or hosts_per_team > 254:
         raise ValueError("teams.hosts_per_team must be in [1, 254]")
@@ -103,8 +105,14 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content)
 
 
-def render_peer_block(public_key: str, allowed_ips: list[str], endpoint: str | None = None) -> str:
-    lines = ["[Peer]", f"PublicKey = {public_key}", f"AllowedIPs = {', '.join(allowed_ips)}"]
+def render_peer_block(
+    public_key: str, allowed_ips: list[str], endpoint: str | None = None
+) -> str:
+    lines = [
+        "[Peer]",
+        f"PublicKey = {public_key}",
+        f"AllowedIPs = {', '.join(allowed_ips)}",
+    ]
     if endpoint:
         lines.append(f"Endpoint = {endpoint}")
     lines.append("PersistentKeepalive = 25")
@@ -112,7 +120,9 @@ def render_peer_block(public_key: str, allowed_ips: list[str], endpoint: str | N
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate WireGuard VPN profiles for CTF teams")
+    parser = argparse.ArgumentParser(
+        description="Generate WireGuard VPN profiles for CTF teams"
+    )
     parser.add_argument(
         "--config",
         default="vulnbox/config/vpn_config.json",
@@ -127,13 +137,20 @@ def main() -> int:
 
     ensure_wg()
 
-    endpoint, listen_port, start_team, count_team, hosts_per_team, local_vulnboxes = parse_config(Path(args.config))
+    endpoint, listen_port, start_team, count_team, hosts_per_team, local_vulnboxes = (
+        parse_config(Path(args.config))
+    )
     teams = make_teams(start_team, count_team, hosts_per_team)
 
     out = Path(args.output_dir)
 
     server_priv, server_pub = wg_keypair()
-    server = Peer(name="gameserver", address="10.10.0.1/32", private_key=server_priv, public_key=server_pub)
+    server = Peer(
+        name="gameserver",
+        address="10.10.0.1/32",
+        private_key=server_priv,
+        public_key=server_pub,
+    )
 
     vm_peers: list[Peer] = []
     host_peers: list[Peer] = []
@@ -168,7 +185,9 @@ def main() -> int:
         "",
     ]
     for p in server_peers:
-        server_conf.append(render_peer_block(p.public_key, [p.address.split('/')[0] + "/32"]))
+        server_conf.append(
+            render_peer_block(p.public_key, [p.address.split("/")[0] + "/32"])
+        )
         server_conf.append("")
 
     write_text(out / "gameserver" / "wg0.conf", "\n".join(server_conf).rstrip() + "\n")
@@ -189,7 +208,9 @@ def main() -> int:
             ),
             "",
         ]
-        write_text(out / "teams" / f"team{team_num:02d}" / "vm" / "wg0.conf", "\n".join(cfg))
+        write_text(
+            out / "teams" / f"team{team_num:02d}" / "vm" / "wg0.conf", "\n".join(cfg)
+        )
 
     for host in host_peers:
         parts = host.name.replace("team", "").split("_")
@@ -208,7 +229,11 @@ def main() -> int:
             "",
         ]
         write_text(
-            out / "teams" / f"team{team_num:02d}" / "hosts" / f"host{host_num:02d}.conf",
+            out
+            / "teams"
+            / f"team{team_num:02d}"
+            / "hosts"
+            / f"host{host_num:02d}.conf",
             "\n".join(cfg),
         )
 
