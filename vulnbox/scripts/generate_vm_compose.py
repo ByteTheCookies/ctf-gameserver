@@ -17,9 +17,9 @@ def parse_teams(config_path: Path) -> list[int]:
     start = int(raw["teams"]["start"])
     count = int(raw["teams"]["count"])
 
-    if start < 1 or start > 254:
+    if start < 0 or start > 254:
         raise ValueError("teams.start must be in [1, 254]")
-    if count < 1 or start + count - 1 > 254:
+    if count < 0 or start + count - 1 > 254:
         raise ValueError("teams.start + teams.count - 1 must be <= 254")
 
     return list(range(start, start + count))
@@ -36,7 +36,9 @@ def main() -> int:
     script_dir = Path(__file__).resolve().parent
     root_dir = script_dir.parent
 
-    parser = argparse.ArgumentParser(description="Generate docker-compose file for all team vulnboxes")
+    parser = argparse.ArgumentParser(
+        description="Generate docker-compose file for all team vulnboxes"
+    )
     parser.add_argument(
         "--config",
         default=str(root_dir / "config" / "vpn_config.json"),
@@ -82,9 +84,9 @@ def main() -> int:
                 "    privileged: true",
                 "    restart: unless-stopped",
                 "    environment:",
-                f"      TEAM_ID: \"{team}\"",
-                "      DOCKER_TLS_CERTDIR: \"\"",
-                f"      SSH_ROOT_PASSWORD: \"{passwords[team_s]}\"",
+                f'      TEAM_ID: "{team}"',
+                '      DOCKER_TLS_CERTDIR: ""',
+                f'      SSH_ROOT_PASSWORD: "{passwords[team_s]}"',
                 "    volumes:",
                 f"      - dind-data-team{team_s}:/var/lib/docker",
                 "    networks:",
