@@ -7,7 +7,7 @@ set -euo pipefail
 VPN_IF="${VPN_IF:-wg0}"
 VM_SUBNET="${VM_SUBNET:-10.60.0.0/16}"
 HOST_SUBNET="${HOST_SUBNET:-10.81.0.0/16}"
-NETWORK_NAME="${NETWORK_NAME:-vulnbox-vms_vulnbox_vm_net}"
+NETWORK_NAME="${NETWORK_NAME:-vulnbox_vm_net}"
 MODE="${1:---apply}"
 
 if [[ "${EUID}" -ne 0 ]]; then

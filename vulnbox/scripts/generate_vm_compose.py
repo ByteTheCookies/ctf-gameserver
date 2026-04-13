@@ -103,6 +103,7 @@ def main() -> int:
             "",
             "networks:",
             "  vulnbox_vm_net:",
+            "    name: vulnbox_vm_net",
             "    driver: bridge",
             "    ipam:",
             "      config:",

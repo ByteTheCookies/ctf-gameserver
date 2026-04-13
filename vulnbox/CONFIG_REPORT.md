@@ -29,7 +29,7 @@ Important mode:
 
 - Rootful Docker daemon (`/var/run/docker.sock`) for vulnbox containers.
 - WireGuard interface `wg0` on VPS.
-- Docker network `vulnbox-vms_vulnbox_vm_net` with subnet `10.60.0.0/16`.
+- Docker network `vulnbox_vm_net` with subnet `10.60.0.0/16`.
 
 ## VPS Routing / Firewall Rules
 
