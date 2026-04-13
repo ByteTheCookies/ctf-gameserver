@@ -71,15 +71,7 @@ def build_team_zip(
         team_dir / "hosts", f"Host config directory for team {team_id:02d}"
     )
 
-    contents = [
-        f"VM {team_id} - Team {fruits[team_id - 1]}",
-        f"ID: {team_id}",
-        f"IP: 10.60.{team_id}.1",
-        f"Password VM: {password}",
-    ]
-
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr("README.txt", "\n".join(contents) + "\n")
         for host_conf in sorted(host_dir.glob("*.conf")):
             archive.write(host_conf, arcname=f"hosts/{host_conf.name}")
 
@@ -199,13 +191,13 @@ def main() -> int:
             zip_path = build_team_zip(team_id, endpoint, team_dir, password, zip_root)
 
             subject = f"{args.subject_prefix} Team {team_id:02d} configuration bundle"
-            html = (
-                f"<p>Attached you can find the configuration bundle for team <strong>{team_id:02d}</strong>.</p>"
-                f"<p>Game Server: <code>10.10.0.1</code><br>"
-                f"<p>Scoreboard: <code>http://10.10.0.1:8011/competition/scoreboard/</code><br>"
-                f"<p>Flag ids: <code>http://10.10.0.1:8011/competition/scoreboard/</code><br>"
-                f"VM IP: <code>10.60.{team_id}.1</code></p>"
-                f"<p>IP format for host is: <code>10.81.{team_id}.host </code><br>"
+            html = "<br>".join(
+                [
+                    f"VM {team_id} - Team {fruits[team_id - 1]}",
+                    f"ID: {team_id}",
+                    f"IP: 10.60.{team_id}.1",
+                    f"Password VM: {password}",
+                ]
             )
 
             if args.dry_run:
