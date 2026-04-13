@@ -74,16 +74,16 @@ clean:
 
 up_infra:
 	@echo Starting gameserver infrastructure using Docker Compose...
-	docker compose -f docker-compose.yml up -d
+	sudo docker compose -f docker-compose.yml up -d
 	@echo Gameserver infrastructure started.
 	@echo Starting vulnbox infrastructure using Docker Compose...
-	docker compose -f vulnbox/docker-compose.vms.yml up -d
+	sudo docker compose -f vulnbox/docker-compose.vms.yml up -d
 	@echo Vulnbox infrastructure started.
 
 down_infra:
 	@echo Stopping gameserver infrastructure using Docker Compose...
-	docker compose -f docker-compose.yml down
+	sudo docker compose -f docker-compose.yml down
 	@echo Gameserver infrastructure stopped.
 	@echo Stopping vulnbox infrastructure using Docker Compose...
-	docker compose -f vulnbox/docker-compose.vms.yml down
+	sudo docker compose -f vulnbox/docker-compose.vms.yml down
 	@echo Vulnbox infrastructure stopped.
