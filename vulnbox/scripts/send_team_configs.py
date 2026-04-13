@@ -85,7 +85,6 @@ def build_team_zip(
 
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("README.txt", "\n".join(contents) + "\n")
-        archive.write(vm_conf, arcname="vm/wg0.conf")
         for host_conf in sorted(host_dir.glob("*.conf")):
             archive.write(host_conf, arcname=f"hosts/{host_conf.name}")
         if password is not None:
