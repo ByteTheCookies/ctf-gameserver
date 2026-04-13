@@ -13,7 +13,7 @@ services:
     environment:
       TEAM_ID: "1"
       DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "66ec06ebf2ed16a02aceb9c59af4de4d6bf28cbe"
+      SSH_ROOT_PASSWORD: "c7738b57ee2a32eef872cd0d4109b826e7ece6be"
     volumes:
       - dind-data-team01:/var/lib/docker
     networks:
@@ -31,7 +31,7 @@ services:
     environment:
       TEAM_ID: "2"
       DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "bcd1eadbd9538736dcce14efd6ffe2decf813cc1"
+      SSH_ROOT_PASSWORD: "ac5e7daa4cefa26c6a0f76a7d389c9ce32ea2da0"
     volumes:
       - dind-data-team02:/var/lib/docker
     networks:
@@ -49,7 +49,7 @@ services:
     environment:
       TEAM_ID: "3"
       DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "d470f6ebffcccead8d2edf6bf05dd16bd89da7fe"
+      SSH_ROOT_PASSWORD: "37eb1bdcfdc01ffad0e6fa37df49b6df8233bfcd"
     volumes:
       - dind-data-team03:/var/lib/docker
     networks:
@@ -67,7 +67,7 @@ services:
     environment:
       TEAM_ID: "4"
       DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "eadb9b4366cb0df94c720d5bcdba8cebdb475cdf"
+      SSH_ROOT_PASSWORD: "88b0aafb0cab07af8de5ea9beb69c4ba64dffd62"
     volumes:
       - dind-data-team04:/var/lib/docker
     networks:
@@ -85,7 +85,7 @@ services:
     environment:
       TEAM_ID: "5"
       DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "60d47d0646ace8adefb4b5dc67a3a0bffaeabdbe"
+      SSH_ROOT_PASSWORD: "7ef4901a7d92b9fcbf5b6e2e208505cad53acefa"
     volumes:
       - dind-data-team05:/var/lib/docker
     networks:
@@ -103,7 +103,7 @@ services:
     environment:
       TEAM_ID: "6"
       DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "8f7d079188b2d63e4cdac981537d650af71d590f"
+      SSH_ROOT_PASSWORD: "fe1aa239fedc50dabeda1f1547cf8158c6d50ae8"
     volumes:
       - dind-data-team06:/var/lib/docker
     networks:
@@ -121,7 +121,7 @@ services:
     environment:
       TEAM_ID: "7"
       DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "af7cf39cfdf4cf24dfaccbfc28653cbea5db6c19"
+      SSH_ROOT_PASSWORD: "6c99fe2d786f41f9afa33755ddb4ae6b179dfbff"
     volumes:
       - dind-data-team07:/var/lib/docker
     networks:

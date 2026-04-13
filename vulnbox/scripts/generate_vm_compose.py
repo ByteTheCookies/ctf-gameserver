@@ -17,9 +17,9 @@ def parse_teams(config_path: Path) -> list[int]:
     start = int(raw["teams"]["start"])
     count = int(raw["teams"]["count"])
 
-    if start < 0 or start > 254:
+    if start < 1 or start > 254:
         raise ValueError("teams.start must be in [1, 254]")
-    if count < 0 or start + count - 1 > 254:
+    if count < 1 or start + count - 1 > 254:
         raise ValueError("teams.start + teams.count - 1 must be <= 254")
 
     return list(range(start, start + count))

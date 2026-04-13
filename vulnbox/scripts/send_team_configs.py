@@ -21,9 +21,9 @@ def parse_config(path: Path) -> tuple[list[int], dict[int, list[str]], str]:
     count = int(raw["teams"]["count"])
     endpoint = str(raw.get("endpoint", "vpn.example.ctf:51820"))
 
-    if start < 0 or start > 254:
+    if start < 1 or start > 254:
         raise ValueError("teams.start must be in [1, 254]")
-    if count < 0 or start + count - 1 > 254:
+    if count < 1 or start + count - 1 > 254:
         raise ValueError("teams.start + teams.count - 1 must be <= 254")
 
     team_ids = list(range(start, start + count))

@@ -83,9 +83,9 @@ def parse_config(path: Path) -> tuple[str, int, int, int, int, bool]:
     hosts_per_team = int(raw["teams"]["hosts_per_team"])
     local_vulnboxes = bool(raw.get("local_vulnboxes", True))
 
-    if start_team < 0 or start_team > 254:
+    if start_team < 1 or start_team > 254:
         raise ValueError("teams.start must be in [0, 254]")
-    if count_team < 0 or (start_team + count_team - 1) > 254:
+    if count_team < 1 or (start_team + count_team - 1) > 254:
         raise ValueError("teams.start + teams.count - 1 must be <= 254")
     if hosts_per_team < 1 or hosts_per_team > 254:
         raise ValueError("teams.hosts_per_team must be in [1, 254]")

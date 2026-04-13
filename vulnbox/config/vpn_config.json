@@ -3,12 +3,15 @@
   "listen_port": 51820,
   "local_vulnboxes": true,
   "teams": {
-    "start": 0,
+    "start": 1,
     "count": 7,
     "hosts_per_team": 4
   },
   "team_contacts": {
     "01": [
+      "team@bytethecookies.org"
+    ],
+    "02": [
       "akiidjk@bytethecookies.org"
     ]
   }
