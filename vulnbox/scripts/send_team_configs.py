@@ -72,7 +72,7 @@ def build_team_zip(
     )
 
     contents = [
-        f"VM {team_id} - Team {fruits[team_id]}",
+        f"VM {team_id} - Team {fruits[team_id - 1]}",
         f"ID: {team_id}",
         f"IP: 10.60.{team_id}.1",
         f"Password VM: {password}",
