@@ -21,7 +21,8 @@ RUN apt-get update \
        fi \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt -y --no-install-recommends install tcpdump rsync python3
+RUN apt-get update && apt-get install -y --no-install-recommends tcpdump rsync python3 \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /run/sshd /etc/ssh/sshd_config.d /etc/vulnbox \
     && printf '%s\n' \
