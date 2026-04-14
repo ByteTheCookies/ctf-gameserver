@@ -78,12 +78,15 @@ up_infra:
 	@echo Vulnbox infrastructure started.
 	@echo Starting gameserver infrastructure using Docker Compose...
 	sudo docker compose -f docker-compose.yml up -d --build
+	sudo docker compose --profile checker up -d checker_ccforms_1 checker_ccforms_2 --build
+	cd ./vulnbox/scripts/ && sudo ./setup_vps_routing.sh
 	@echo Gameserver infrastructure started.
 
 
 down_infra:
 	@echo Stopping gameserver infrastructure using Docker Compose...
 	sudo docker compose -f docker-compose.yml down --remove-orphans
+	sudo docker compose --profile checker down -d checker_ccforms_1 checker_ccforms_2
 	@echo Gameserver infrastructure stopped.
 	@echo Stopping vulnbox infrastructure using Docker Compose...
 	sudo docker compose -f vulnbox/docker-compose.vms.yml down --remove-orphans

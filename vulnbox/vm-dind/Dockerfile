@@ -21,6 +21,8 @@ RUN apt-get update \
        fi \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt install tcpdump rsync python3
+
 RUN mkdir -p /run/sshd /etc/ssh/sshd_config.d /etc/vulnbox \
     && printf '%s\n' \
        'PasswordAuthentication yes' \
