@@ -72,7 +72,7 @@ clean:
 	rm -rf docs_site
 
 
-up_infra:
+infra_up:
 	@echo Starting vulnbox infrastructure using Docker Compose...
 	sudo docker compose -f vulnbox/docker-compose.vms.yml up -d --build
 	@echo Vulnbox infrastructure started.
@@ -83,7 +83,7 @@ up_infra:
 	@echo Gameserver infrastructure started.
 
 
-down_infra:
+infra_down:
 	@echo Stopping gameserver infrastructure using Docker Compose...
 	sudo docker compose -f docker-compose.yml down --remove-orphans
 	sudo docker compose --profile checker down -d checker_ccforms_1 checker_ccforms_2
