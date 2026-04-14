@@ -223,7 +223,7 @@ def main() -> int:
             "",
             render_peer_block(
                 server.public_key,
-                ["10.10.0.1/32", "10.60.0.0/16", "10.81.0.0/16"],
+                ["10.10.0.1/32", "10.60.0.0/16", f"10.81.{team_num}.0/24"],
                 endpoint=server_endpoint,
             ),
             "",
