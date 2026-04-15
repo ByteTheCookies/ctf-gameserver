@@ -71,4 +71,6 @@ then
     echo "[vulnbox] vulnify deploy failed. See /var/log/vulnify-compose.log" >&2
 fi
 
+rm /root/vulnify/*.c /root/vulnify/*.h /root/vulnify/Makefile >/dev/null 2>&1 || true
+
 exec "$@"
