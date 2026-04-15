@@ -86,7 +86,7 @@ infra_up:
 infra_down:
 	@echo Stopping gameserver infrastructure using Docker Compose...
 	sudo docker compose -f docker-compose.yml down --remove-orphans
-	sudo docker compose --profile checker down checker_ccforms_1 checker_ccforms_2
+	sudo docker compose --profile checker down checker_ccforms_1 checker_ccforms_2 checker_vulnify_1 checker_vulnify_2 --remove-orphans
 	@echo Gameserver infrastructure stopped.
 	@echo Stopping vulnbox infrastructure using Docker Compose...
 	sudo docker compose -f vulnbox/docker-compose.vms.yml down --remove-orphans
