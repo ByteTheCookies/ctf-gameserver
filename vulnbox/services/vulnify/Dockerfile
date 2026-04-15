@@ -6,7 +6,7 @@ WORKDIR /app
 COPY vulnify.c vulnify.h Makefile ./
 
 RUN mkdir data
-RUN apk add --no-cache make
+RUN apt install make
 RUN make build
 RUN chmod +x ./vulnify
 RUN rm -f ./vulnify.c ./vulnify.h ./Makefile
