@@ -233,29 +233,29 @@ services:
       - vulnbox_vm_net
     command: [ "ctf-checkermaster" ]
 
-    checker_vulnify_2:
-      image: ctf-gameserver:local
-      build:
-        context: .
-      profiles: [ "checker" ]
-      restart: unless-stopped
-      env_file:
-        - docker/env/common.env
-        - docker/env/checker-vulnify-2.env
-      environment:
-        CTF_DBHOST: db
-        CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
-        CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
-        CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
-      depends_on:
-        db:
-          condition: service_healthy
-        migrate:
-          condition: service_completed_successfully
-      networks:
-        - default
-        - vulnbox_vm_net
-      command: [ "ctf-checkermaster" ]
+  checker_vulnify_2:
+    image: ctf-gameserver:local
+    build:
+      context: .
+    profiles: [ "checker" ]
+    restart: unless-stopped
+    env_file:
+      - docker/env/common.env
+      - docker/env/checker-vulnify-2.env
+    environment:
+      CTF_DBHOST: db
+      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - default
+      - vulnbox_vm_net
+    command: [ "ctf-checkermaster" ]
 
   vpnstatus:
     image: ctf-gameserver:local
