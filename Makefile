@@ -78,7 +78,7 @@ infra_up:
 	@echo Vulnbox infrastructure started.
 	@echo Starting gameserver infrastructure using Docker Compose...
 	sudo docker compose -f docker-compose.yml up -d --build
-	sudo docker compose --profile checker up -d checker_ccforms_1 checker_ccforms_2 --build
+	sudo docker compose --profile checker up -d checker_ccforms_1 checker_ccforms_2 checker_vulnify_1 checker_vulnify_2 --build
 	cd ./vulnbox/scripts/ && sudo ./setup_vps_routing.sh
 	@echo Gameserver infrastructure started.
 
