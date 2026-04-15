@@ -3,8 +3,11 @@
 from checklib import *
 import random
 import string
+import json
+import logging
 from client import Client
 import traceback
+from ctf_gameserver import checkerlib
 
 PORT = 1337
 ALPHABET = string.ascii_letters + string.digits
@@ -25,7 +28,7 @@ def check_login():
     username = rand_str(random.randint(5, 20)).encode()
     password = rand_str(random.randint(5, 20)).encode()
 
-    client = Client(host, port)
+    client = Client(host, PORT)
 
     # shouldn't fail because check_register is done first
     client.register(username, password)
@@ -41,7 +44,7 @@ def check_create_playlist():
     num_songs = random.randint(1, 23)
     songs = [rand_str(random.randint(2, 10)).encode() for _ in range(num_songs)]
 
-    client = Client(host, port)
+    client = Client(host, PORT)
 
     client.register(username, password)
     client.login(username, password), (username, password)
@@ -57,7 +60,7 @@ def check_inspect_playlists():
     num_songs = random.randint(1, 23)
     songs = [rand_str(random.randint(2, 10)).encode() for _ in range(num_songs)]
 
-    client = Client(host, port)
+    client = Client(host, PORT)
 
     client.register(username, password)
     client.login(username, password), (username, password)
@@ -168,20 +171,14 @@ def put_flag(host, flag):
     except Exception:
             quit(Status.DOWN, "Cannot set flag", str(traceback.format_exc()) + f"\n{flag}")
 
-    # Post flag id to game server
-    try:
-        post_flag_id('vulnify-2', team_id, flag_id)
-    except Exception:
-        quit(Status.ERROR, 'Failed to post flag id', str(traceback.format_exc()) + f"\n{flag}")
-
-    quit(Status.OK, 'OK')
+    return flag_id
 
 
 def get_flag(host, flag):
     random.seed(flag.encode())
 
     username = rand_str(random.randint(10, 30))
-    password = rand_str(random.randint(1, 30))
+    password = rand_str(random.randint(10, 30))
     artist = rand_str(random.randint(5, 25))
     key = rand_str(random.randint(5, 15))
 
@@ -196,37 +193,61 @@ def get_flag(host, flag):
     recovered = client.decrypt_artist(artist, key)
 
     if recovered != flag:
-        quit(Status.DOWN, "Cannot get flag", f"{flag}")
+        return False
+    return True
 
-    quit(Status.OK, 'OK')
+
+def _map_legacy_system_exit(exc: SystemExit) -> checkerlib.CheckResult:
+    try:
+        code = int(exc.code)
+    except Exception:  # noqa: BLE001
+        code = Status.ERROR.value
+
+    if code == Status.OK.value:
+        return checkerlib.CheckResult.OK
+    if code == Status.DOWN.value:
+        return checkerlib.CheckResult.DOWN
+    return checkerlib.CheckResult.FAULTY
+
+
+class Vulnify2Checker(checkerlib.BaseChecker):
+    def place_flag(self, tick):
+        flag = checkerlib.get_flag(tick)
+        try:
+            flag_id = put_flag(self.ip, flag)
+            checkerlib.set_flagid(json.dumps(flag_id))
+            return checkerlib.CheckResult.OK
+        except SystemExit as exc:
+            return _map_legacy_system_exit(exc)
+        except Exception:  # noqa: BLE001
+            logging.exception("vulnify-2 place_flag failed")
+            return checkerlib.CheckResult.DOWN
+
+    def check_service(self):
+        try:
+            check_sla(self.ip)
+            return checkerlib.CheckResult.OK
+        except SystemExit as exc:
+            return _map_legacy_system_exit(exc)
+        except Exception:  # noqa: BLE001
+            logging.exception("vulnify-2 check_service failed")
+            return checkerlib.CheckResult.DOWN
+
+    def check_flag(self, tick):
+        flag = checkerlib.get_flag(tick)
+        try:
+            if get_flag(self.ip, flag):
+                return checkerlib.CheckResult.OK
+            return checkerlib.CheckResult.FLAG_NOT_FOUND
+        except SystemExit as exc:
+            result = _map_legacy_system_exit(exc)
+            if result == checkerlib.CheckResult.DOWN:
+                return checkerlib.CheckResult.FLAG_NOT_FOUND
+            return result
+        except Exception:  # noqa: BLE001
+            logging.exception("vulnify-2 check_flag failed")
+            return checkerlib.CheckResult.DOWN
 
 
 if __name__ == '__main__':
-    data = get_data()
-    action = data['action']
-    team_id = data['teamId']
-    host = '10.60.' + team_id + '.1'
-    if 'LOCALHOST' in os.environ:
-        host = '127.0.0.1'
-
-    if action == Action.CHECK_SLA.name:
-        try:
-            check_sla(host)
-        except Exception:
-            quit(Status.DOWN, 'Cannot check SLA', str(traceback.format_exc()))
-    elif action == Action.PUT_FLAG.name:
-        flag = data['flag']
-        try:
-            put_flag(host, flag)
-        except Exception:
-            quit(Status.DOWN, "Cannot put flag", str(traceback.format_exc()))
-    elif action == Action.GET_FLAG.name:
-        flag = data['flag']
-        try:
-            get_flag(host, flag)
-        except Exception:
-            quit(Status.DOWN, "Cannot get flag", str(traceback.format_exc()))
-    else:
-        quit(Status.ERROR, 'System error', 'Unknown action: ' + action)
-
-    quit(Status.OK)
+    checkerlib.run_check(Vulnify2Checker)
