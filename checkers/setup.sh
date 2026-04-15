@@ -25,3 +25,10 @@ cd ..
 cd Inlook-2
 ./setup.sh
 cd ..
+
+cd vulnify-1
+./setup.sh
+cd ..
+cd vulnify-2
+./setup.sh
+cd ..
