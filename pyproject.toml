@@ -25,6 +25,7 @@ dependencies = [
     "prometheus_client",
     "resend",
     "requests",
+    "pwntools"
 ]
 
 [project.optional-dependencies]
