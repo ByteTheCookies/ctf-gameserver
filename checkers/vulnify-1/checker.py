@@ -7,6 +7,7 @@ import json
 import logging
 from client import Client
 import traceback
+from functools import partial
 from ctf_gameserver import checkerlib
 
 PORT = 1337
@@ -16,42 +17,37 @@ ALPHABET = string.ascii_letters + string.digits
 def rand_str(length):
     return ''.join(random.choices(ALPHABET, k=length))
 
-def check_register():
+def check_register(host):
     username = rand_str(random.randint(5, 20)).encode()
     password = rand_str(random.randint(5, 20)).encode()
 
     client = Client(host, PORT)
+    client.connect()
+    client.sync()
 
-    return client.register(username, password), (username, password)
+    result = client.register(username, password), (username, password)
 
-def check_login():
+    client.close()
+
+    return result
+
+def check_login(host):
     username = rand_str(random.randint(5, 20)).encode()
     password = rand_str(random.randint(5, 20)).encode()
 
     client = Client(host, PORT)
+    client.connect()
+    client.sync()
 
-    # shouldn't fail because check_register is done first
-    client.register(username, password)
+    assert client.register(username, password), (username, password)
 
-    return client.login(username, password), (username, password)
+    result = client.login(username, password), (username, password)
 
-def check_create_playlist():
-    username = rand_str(random.randint(5, 20)).encode()
-    password = rand_str(random.randint(5, 20)).encode()
+    client.close()
 
-    pl_name = rand_str(random.randint(10, 20)).encode()
-    pl_desc = rand_str(random.randint(10, 20)).encode()
-    num_songs = random.randint(1, 23)
-    songs = [rand_str(random.randint(2, 10)).encode() for _ in range(num_songs)]
+    return result
 
-    client = Client(host, PORT)
-
-    client.register(username, password)
-    client.login(username, password), (username, password)
-
-    return client.create_playlist(pl_name, pl_desc, num_songs, songs), (pl_name, pl_desc, num_songs, songs)
-
-def check_inspect_playlists():
+def check_create_playlist(host):
     username = rand_str(random.randint(5, 20)).encode()
     password = rand_str(random.randint(5, 20)).encode()
 
@@ -61,12 +57,39 @@ def check_inspect_playlists():
     songs = [rand_str(random.randint(2, 10)).encode() for _ in range(num_songs)]
 
     client = Client(host, PORT)
+    client.connect()
+    client.sync()
 
-    client.register(username, password)
-    client.login(username, password), (username, password)
-    client.create_playlist(pl_name, pl_desc, num_songs, songs), (pl_name, pl_desc, num_songs, songs)
+    assert client.register(username, password), (username, password)
+    assert client.login(username, password), (username, password)
+
+    result = client.create_playlist(pl_name, pl_desc, num_songs, songs), (pl_name, pl_desc, num_songs, songs)
+
+    client.close()
+
+    return result
+
+def check_inspect_playlists(host):
+    username = rand_str(random.randint(5, 20)).encode()
+    password = rand_str(random.randint(5, 20)).encode()
+
+    pl_name = rand_str(random.randint(10, 20)).encode()
+    pl_desc = rand_str(random.randint(10, 20)).encode()
+    num_songs = random.randint(1, 23)
+    songs = [rand_str(random.randint(2, 10)).encode() for _ in range(num_songs)]
+
+    client = Client(host, PORT)
+    client.connect()
+    client.sync()
+
+    assert client.register(username, password), (username, password)
+    assert client.login(username, password), (username, password)
+
+    assert client.create_playlist(pl_name, pl_desc, num_songs, songs), (pl_name, pl_desc, num_songs, songs)
 
     res = client.inspect_playlists()
+
+    client.close()
 
     if not res or len(res) > 1:
         return False, (pl_name, pl_desc, num_songs, songs)
@@ -80,15 +103,24 @@ def check_inspect_playlists():
     except:
         return False, (pl_name, pl_desc, num_songs, songs)
 
-def check_play_random_song():
+def check_play_random_song(host):
     username = rand_str(random.randint(5, 20)).encode()
     password = rand_str(random.randint(5, 20)).encode()
 
     client = Client(host, PORT)
+    client.connect()
+    client.sync()
 
-    return client.play_random_song(), (username, password)
+    assert client.register(username, password), (username, password)
+    assert client.login(username, password)
 
-def check_create_artist():
+    result = client.play_random_song(), (username, password)
+
+    client.close()
+
+    return result
+
+def check_create_artist(host):
     username = rand_str(random.randint(5, 20)).encode()
     password = rand_str(random.randint(5, 20)).encode()
     artist = rand_str(random.randint(5, 30)).encode()
@@ -96,10 +128,19 @@ def check_create_artist():
     key = rand_str(random.randint(5, 15)).encode()
 
     client = Client(host, PORT)
+    client.connect()
+    client.sync()
 
-    return client.create_artist(artist, description, key), (artist, description, key)
+    assert client.register(username, password), (username, password)
+    assert client.login(username, password), (username, password)
 
-def check_decrypt_artist():
+    result = client.create_artist(artist, description, key), (artist, description, key)
+
+    client.close()
+
+    return result
+
+def check_decrypt_artist(host):
     username = rand_str(random.randint(5, 20)).encode()
     password = rand_str(random.randint(5, 20)).encode()
     artist = rand_str(random.randint(5, 30)).encode()
@@ -107,22 +148,31 @@ def check_decrypt_artist():
     key = rand_str(random.randint(5, 15)).encode()
 
     client = Client(host, PORT)
+    client.connect()
+    client.sync()
 
-    client.create_artist(artist, description, key)
+    assert client.register(username, password), (username, password)
+    assert client.login(username, password), (username, password)
 
-    return client.decrypt_artist(artist, key) == description, (artist, key)
+    assert client.create_artist(artist, description, key), (artist, description, key)
+
+    result = client.decrypt_artist(artist, key) == description
+
+    client.close()
+
+    return result, (artist, key)
 
 
 def check_sla(host):
     # Check service functionality
     utils = [
-        check_register,
-        check_login,
-        check_create_playlist,
-        check_inspect_playlists,
-        check_play_random_song,
-        check_create_artist,
-        check_decrypt_artist
+        partial(check_register, host),
+        partial(check_login, host),
+        partial(check_create_playlist, host),
+        partial(check_inspect_playlists, host),
+        partial(check_play_random_song, host),
+        partial(check_create_artist, host),
+        partial(check_decrypt_artist, host)
         ]
 
     messages = {
@@ -139,9 +189,9 @@ def check_sla(host):
         try:
             check, data = u()
             if not check:
-                quit(Status.DOWN, messages[u.__name__], str(data))
+                quit(Status.DOWN, messages[u.func.__name__], str(data))
         except Exception:
-            quit(Status.DOWN, messages[u.__name__], str(traceback.format_exc()))
+            quit(Status.DOWN, messages[u.func.__name__], str(traceback.format_exc()))
 
     quit(Status.OK, 'OK')
 
@@ -162,17 +212,19 @@ def put_flag(host, flag):
 
         client = Client(host, PORT)
         client.connect()
+        client.sync()
 
-        assert client.register(username.encode(), password.encode())
+        assert client.register(username.encode(), password.encode()), 'Register failed'
 
-        assert client.login(username.encode(), password.encode())
+        assert client.login(username.encode(), password.encode()), 'Login failed'
 
-        assert client.create_playlist(pl_name.encode(), pl_desc.encode(), num_songs, songs)
+        assert client.create_playlist(pl_name.encode(), pl_desc.encode(), num_songs, songs), 'Create playlist failed'
 
-        assert client.exit()
+        client.close()
 
     except Exception:
-            quit(Status.DOWN, "Cannot set flag", str(traceback.format_exc()) + f"\n{flag}")
+        client.close()
+        quit(Status.DOWN, "Cannot put flag", str(traceback.format_exc()) + f"\n{flag}")
 
     return flag_id
 
@@ -184,21 +236,21 @@ def get_flag(host, flag):
     password = rand_str(random.randint(1, 30))
 
     client = Client(host, PORT)
-
-    if not client.register(username.encode(), password.encode()):
-        quit(Status.DOWN, "Cannot get flag", f"{flag}")
+    client.connect()
+    client.sync()
 
     if not client.login(username.encode(), password.encode()):
+        client.close()
         quit(Status.DOWN, "Cannot get flag", f"{flag}")
 
     pls = client.inspect_playlists()
 
-    if not client.exit():
-        quit(Status.DOWN, "Cannot get flag", f"{flag}")
+    client.close()
 
     for name, (desc, songs) in pls.items():
-        if desc.decode() == flag:
+        if desc == flag.encode():
             return True
+
     return False
 
 
