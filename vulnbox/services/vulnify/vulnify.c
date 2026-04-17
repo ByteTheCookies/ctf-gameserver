@@ -6,6 +6,7 @@ struct artist_t
 {
 	char name[ARTIST_NAME_LENGTH];
 	char description[ARTIST_DESCRIPTION_LENGTH];
+	uint8_t description_len;
 };
 
 struct playlist_t
@@ -23,13 +24,14 @@ struct user_t
 	uint8_t saved_playlists;
 };
 
-static user* g_logged = NULL;
-
 static uint8_t __user_exists(char* name, char* path);
-static uint8_t __playlist_exists(char* name, char* path);
+static uint8_t __playlist_exists(user* usr, char* name, char* path);
 static uint8_t __check_string(char* string);
-static void __load_user(const char* path);
-static uint8_t __save_user(const char* path, const user* usr);
+static void __load_user(const char* path, user* usr);
+static uint8_t __save_user(const char* path, user* usr);
+static void __encrypt(const char* key, char* data, char* buffer, uint8_t len);
+static void __decrypt(const char* key, char* data, char* buffer, uint8_t len);
+static void __print_hex(const char* data, uint8_t n);
 
 int main(void)
 {// {{{
@@ -38,20 +40,12 @@ int main(void)
 	setvbuf(stderr, NULL, _IONBF, 0);
 	setlocale(LC_ALL, "");
 
-	g_logged = malloc(sizeof(*g_logged));
-	if (!g_logged)
-	{
-		perror("malloc");
-		return 1;
-	}
-	memset(g_logged, 0, sizeof(*g_logged));
+	user logged_user;
 
 	srand((unsigned)time(NULL));
 
-	main_menu();
+	main_menu(&logged_user);
 
-	free(g_logged);
-	g_logged = NULL;
 	return 0;
 }// }}}
 
@@ -59,7 +53,7 @@ static uint8_t __user_exists(char* name, char* path)
 {// {{{
 	name[strcspn(name, "\n")] = '\0';
 
-	int n = snprintf(path, USER_PATH_LENGTH, "data/%s", name);
+	int n = snprintf(path, USER_PATH_LENGTH, "./data/%s", name);
 	if (n < 0 || n >= USER_PATH_LENGTH)
 		return 0;
 
@@ -67,11 +61,11 @@ static uint8_t __user_exists(char* name, char* path)
 }// }}}
 
 /* playlists now live in data/<user>/playlists/<name> */
-static uint8_t __playlist_exists(char* name, char* path)
+static uint8_t __playlist_exists(user* usr, char* name, char* path)
 {// {{{
 	name[strcspn(name, "\n")] = '\0';
 
-	int n = snprintf(path, PLAYLIST_PATH_LENGTH, "data/%s/playlists/%s", g_logged->username, name);
+	int n = snprintf(path, PLAYLIST_PATH_LENGTH, "./data/%s/playlists/%s", usr->username, name);
 	if (n < 0 || n >= PLAYLIST_PATH_LENGTH)
 		return 0;
 
@@ -79,26 +73,21 @@ static uint8_t __playlist_exists(char* name, char* path)
 }// }}}
 
 /* artists now live in data/<user>/artists/<name> */
-static uint8_t __artist_exists(char* name, char* path)
+static uint8_t __artist_exists(user* usr, char* name, char* path)
 {// {{{
 	name[strcspn(name, "\n")] = '\0';
 
-	int n = snprintf(path, ARTIST_PATH_LENGTH, "data/%s/artists/%s", g_logged->username, name);
+	int n = snprintf(path, ARTIST_PATH_LENGTH, "./data/%s/artists/%s", usr->username, name);
 	if (n < 0 || n >= ARTIST_PATH_LENGTH)
 		return 0;
 
 	return access(path, F_OK) == 0;
 }// }}}
 
-static void __load_user(const char* path)
+static void __load_user(const char* path, user* usr)
 {// {{{
 	char fullpath[USER_PATH_LENGTH + 6];
-	int n = snprintf(fullpath, sizeof(fullpath), "%s/info", path);
-	if (n < 0 || n >= (int)sizeof(fullpath))
-	{
-		fprintf(stderr, "[ERROR] User info path too long\n");
-		return;
-	}
+	snprintf(fullpath, sizeof(fullpath), "%s/info", path);
 
 	FILE* f = fopen(fullpath, "rb");
 	if (!f)
@@ -107,24 +96,18 @@ static void __load_user(const char* path)
 		return;
 	}
 
-	size_t r = fread(g_logged, sizeof(*g_logged), 1, f);
+	size_t r = fread(usr, sizeof(*usr), 1, f);
 	if (r != 1)
 	{
 		fprintf(stderr, "[ERROR] Failed to read user info\n");
-		memset(g_logged, 0, sizeof(*g_logged));
 	}
 	fclose(f);
 }// }}}
 
-static uint8_t __save_user(const char* path, const user* usr)
+static uint8_t __save_user(const char* path, user* usr)
 {// {{{
 	char fullpath[USER_PATH_LENGTH + 6];
-	int n = snprintf(fullpath, sizeof(fullpath), "%s/info", path);
-	if (n < 0 || n >= (int)sizeof(fullpath))
-	{
-		fprintf(stderr, "[ERROR] User info path too long\n");
-		return 0;
-	}
+	snprintf(fullpath, sizeof(fullpath), "%s/info", path);
 
 	FILE* uf = fopen(fullpath, "wb");
 	if (!uf)
@@ -165,31 +148,32 @@ static uint8_t __check_string(char* string)
 	return *string == '\0';
 }// }}}
 
-static void __encrypt(const char* key, const char* data, char* buffer)
+static void __encrypt(const char* key, char* data, char* buffer, uint8_t len)
 {// {{{
 	uint8_t otp = 0;
 	while (*key != '\0')
 		otp ^= *key++ >> 1;
 
-	for (uint8_t i = 0; i < strlen(data); ++i)
-	{
-		buffer[i] = data[i] ^ otp;
-	}
+	for (uint8_t i = 0; i < len; ++i)
+		buffer[i] = ((const uint8_t*)data)[i] ^ otp;
 }// }}}
 
-static void __decrypt(const char* key, const char* data, char* buffer)
+static void __decrypt(const char* key, char* data, char* buffer, uint8_t len)
 {// {{{
 	uint8_t otp = 0;
 	while (*key != '\0')
 		otp ^= *key++ >> 1;
 
-	for (uint8_t i = 0; i < strlen(data); ++i)
-	{
+	for (uint8_t i = 0; i < len; ++i)
 		buffer[i] = data[i] ^ otp;
-	}
 }// }}}
 
-void main_menu(void)
+static void __print_hex(const char* data, uint8_t n)
+{// {{{
+	for (uint8_t i = 0; i < n; ++i) printf("%02x", data[i]);
+}// }}}
+
+void main_menu(user* usr)
 {// {{{
 	puts("Vulnify (version: 2.0.1)\n");
 	uint8_t run = 0;
@@ -214,11 +198,11 @@ void main_menu(void)
 		switch ((char)c)
 		{
 			case '1':
-				register_user();
+				register_user(usr);
 				run = 1;
 				break;
 			case '2':
-				if (!login()) run = 1;
+				if (!login(usr)) run = 1;
 				break;
 			case '0':
 				return;
@@ -228,10 +212,10 @@ void main_menu(void)
 		}
 	} while (run == 1);
 
-	user_menu();
+	user_menu(usr);
 }// }}}
 
-void user_menu(void)
+void user_menu(user* usr)
 {// {{{
 	uint8_t run = 0;
 
@@ -254,11 +238,11 @@ void user_menu(void)
 		switch ((char)c)
 		{
 			case '1':
-				create_playlist();
+				create_playlist(usr);
 				run = 1;
 				break;
 			case '2':
-				inspect_playlists();
+				inspect_playlists(usr);
 				run = 1;
 				break;
 			case '3':
@@ -266,11 +250,11 @@ void user_menu(void)
 				run = 1;
 				break;
 			case '4':
-				create_artist();
+				create_artist(usr);
 				run = 1;
 				break;
 			case '5':
-				decrypt_artist();
+				decrypt_artist(usr);
 				run = 1;
 				break;
 			case '0':
@@ -283,7 +267,7 @@ void user_menu(void)
 	} while (run);
 }// }}}
 
-uint8_t register_user(void)
+uint8_t register_user(user* usr)
 {// {{{
 	char username[USERNAME_LENGTH];
 	char password[PASSWORD_LENGTH];
@@ -320,26 +304,23 @@ uint8_t register_user(void)
 			return 0;
 		}
 
-		/* create subdirs for the new feature */
+		char pdir[USER_PATH_LENGTH + 11];
+		char adir[USER_PATH_LENGTH + 9];
+
+		/* data/<user>/playlists */
+		snprintf(pdir, sizeof(pdir), "%s/playlists", path);
+		if (mkdir(pdir, 0777) != 0 && errno != EEXIST)
 		{
-			char pdir[USER_PATH_LENGTH + 11];
-			char adir[USER_PATH_LENGTH + 9];
+			perror("mkdir playlists");
+			return 0;
+		}
 
-			/* data/<user>/playlists */
-			snprintf(pdir, sizeof(pdir), "%s/playlists", path);
-			if (mkdir(pdir, 0777) != 0 && errno != EEXIST)
-			{
-				perror("mkdir playlists");
-				return 0;
-			}
-
-			/* data/<user>/artists */
-			snprintf(adir, sizeof(adir), "%s/artists", path);
-			if (mkdir(adir, 0777) != 0 && errno != EEXIST)
-			{
-				perror("mkdir artists");
-				return 0;
-			}
+		/* data/<user>/artists */
+		snprintf(adir, sizeof(adir), "%s/artists", path);
+		if (mkdir(adir, 0777) != 0 && errno != EEXIST)
+		{
+			perror("mkdir artists");
+			return 0;
 		}
 
 		break;
@@ -354,26 +335,23 @@ uint8_t register_user(void)
 		puts("[ERROR] Invalid password");
 	}
 
-	user usr;
-	memset(&usr, 0, sizeof(usr));
+	memset(usr, 0, sizeof(*usr));
 
-	strcpy(usr.username, username);
-	strcpy(usr.password, password);
-	usr.saved_playlists = 0;
+	strcpy(usr->username, username);
+	strcpy(usr->password, password);
+	usr->saved_playlists = 0;
 
-	if (!__save_user(path, &usr))
+	if (!__save_user(path, usr))
 	{
 		puts("[ERROR] Failed to save user");
 		return 0;
 	}
 
-	memcpy(g_logged, &usr, sizeof(*g_logged));
-
 	puts("\nUser successfully registered");
 	return 1;
 }// }}}
 
-uint8_t login(void)
+uint8_t login(user* usr)
 {// {{{
 	char username[USERNAME_LENGTH];
 	char password[PASSWORD_LENGTH];
@@ -387,19 +365,19 @@ uint8_t login(void)
 		if (fgets(username, sizeof(username), stdin) == NULL || !__user_exists(username, path))
 		{
 			puts("[ERROR] Username not found\n");
-			continue;
+			return 0;
 		}
 		break;
 	}
 	username[strcspn(username, "\n")] = '\0';
 
-	__load_user(path);
+	__load_user(path, usr);
 
 	puts("Insert password");
 	putchar('>'); putchar(' ');
 
 	if (fgets(password, sizeof(password), stdin) == NULL ||
-	    strncmp(g_logged->password, password, strlen(password) - 1) != 0)
+	    strncmp(usr->password, password, strlen(password) - 1) != 0)
 	{
 		puts("[ERROR] Invalid password");
 		return 0;
@@ -409,7 +387,7 @@ uint8_t login(void)
 	return 1;
 }// }}}
 
-void create_artist(void)
+void create_artist(user* usr)
 {// {{{
 	char name[ARTIST_NAME_LENGTH];
 	char description[ARTIST_DESCRIPTION_LENGTH];
@@ -429,7 +407,7 @@ void create_artist(void)
 
 		name[strcspn(name, "\n")] = '\0';
 
-		if (__artist_exists(name, path))
+		if (__artist_exists(usr, name, path))
 		{
 			puts("[ERROR] Artist with that name already exists");
 			continue;
@@ -465,43 +443,36 @@ void create_artist(void)
 	}
 	key[strcspn(key, "\n")] = '\0';
 
-	artist* ar = malloc(sizeof(*ar));
-	if (!ar)
-	{
-		perror("malloc artist");
-		return;
-	}
-	memset(ar, 0, sizeof(*ar));
+	artist ar;
+	memset(&ar, 0, sizeof(ar));
 
-	char tmp[ARTIST_DESCRIPTION_LENGTH];
-	memset(tmp, 0, sizeof(tmp));
-	__encrypt(key, description, tmp);
+	strcpy(ar.name, name);
+	ar.description_len = (uint8_t)strlen(description);
+	__encrypt(key, description, ar.description, ar.description_len);
 
-	strcpy(ar->name, name);
-	strcpy(ar->description, tmp);
+	puts("Encrypted description (hex):");
+	__print_hex(ar.description, ar.description_len);
+	putchar('\n');
 
 	FILE* arf = fopen(path, "wb");
 	if (!arf)
 	{
 		perror("fopen artist");
-		free(ar);
 		return;
 	}
-	if (fwrite(ar, sizeof(*ar), 1, arf) != 1)
+	if (fwrite(&ar, sizeof(ar), 1, arf) != 1)
 	{
 		fprintf(stderr, "[ERROR] Failed to write artist\n");
+		fclose(arf);
 		return;
 	}
 
 	fclose(arf);
 
-	free(ar);
-	ar = NULL;
-
 	puts("Artist successfully created");
 }// }}}
 
-void decrypt_artist(void)
+void decrypt_artist(user* usr)
 {// {{{
 	char name[ARTIST_NAME_LENGTH];
 	char path[ARTIST_PATH_LENGTH];
@@ -520,10 +491,10 @@ void decrypt_artist(void)
 
 		name[strcspn(name, "\n")] = '\0';
 
-		if (!__artist_exists(name, path))
+		if (!__artist_exists(usr, name, path))
 		{
 			puts("[ERROR] Artist not found");
-			continue;
+			return;
 		}
 		break;
 	}
@@ -560,15 +531,19 @@ void decrypt_artist(void)
 	}
 	fclose(f);
 
+	uint8_t n = ar.description_len;
+	if (n > ARTIST_DESCRIPTION_LENGTH) n = ARTIST_DESCRIPTION_LENGTH;
+
 	char out[ARTIST_DESCRIPTION_LENGTH];
 	memset(out, 0, sizeof(out));
+	__decrypt(key, ar.description, out, n);
 
-	__decrypt(key, ar.description, out);
-
-	printf("\nArtist: %s\n\"%s\"\n", ar.name, out);
+	printf("\nArtist: %s\nPlaintext (hex):\n", ar.name);
+	__print_hex(out, n);
+	putchar('\n');
 }// }}}
 
-void create_playlist(void)
+void create_playlist(user* usr)
 {// {{{
 	char name[PLAYLIST_NAME_LENGTH];
 	char description[PLAYLIST_DESCRIPTION_LENGTH];
@@ -590,7 +565,7 @@ void create_playlist(void)
 
 		name[strcspn(name, "\n")] = '\0';
 
-		if (__playlist_exists(name, path))
+		if (__playlist_exists(usr, name, path))
 		{
 			puts("[ERROR] Playlist with that name already exists");
 			continue;
@@ -650,54 +625,40 @@ void create_playlist(void)
 	}
 	putchar('\n');
 
-	playlist* pl = malloc(sizeof(*pl));
-	if (!pl)
-	{
-		perror("malloc playlist");
-		return;
-	}
-	memset(pl, 0, sizeof(*pl));
+	playlist pl;
+	memset(&pl, 0, sizeof(pl));
 
-	strcpy(pl->name, name);
-	strcpy(pl->description, description);
-	pl->saved_songs = num_songs;
+	strcpy(pl.name, name);
+	strcpy(pl.description, description);
+	pl.saved_songs = num_songs;
 
 	for (i = 0; i < num_songs; ++i)
-		strcpy(pl->songs[i], songs[i]);
+		strcpy(pl.songs[i], songs[i]);
 
 
 	FILE* plf = fopen(path, "wb");
 	if (!plf)
 	{
 		perror("fopen playlist");
-		free(pl);
 		return;
 	}
-	if (fwrite(pl, sizeof(*pl), 1, plf) != 1)
+	if (fwrite(&pl, sizeof(pl), 1, plf) != 1)
 	{
 		fprintf(stderr, "[ERROR] Failed to write playlist\n");
 		return;
 	}
 
-	g_logged->saved_playlists++;
+	usr->saved_playlists++;
 
 	fclose(plf);
-
-	free(pl);
-	pl = NULL;
 
 	puts("Playlist successfully created");
 }// }}}
 
-void inspect_playlists(void)
+void inspect_playlists(user* usr)
 {// {{{
-	char path[USER_PATH_LENGTH];
-	int n = snprintf(path, sizeof(path), "data/%s/playlists", g_logged->username);
-	if (n < 0 || n >= (int)sizeof(path))
-	{
-		fprintf(stderr, "[ERROR] Path too long\n");
-		return;
-	}
+	char path[USER_PATH_LENGTH + 10];
+	snprintf(path, sizeof(path), "./data/%s/playlists", usr->username);
 
 	DIR* dir = opendir(path);
 	if (!dir)
@@ -713,9 +674,7 @@ void inspect_playlists(void)
 			continue;
 
 		char fpath[PLAYLIST_PATH_LENGTH];
-		n = snprintf(fpath, sizeof(fpath), "%s/%s", path, entry->d_name);
-		if (n < 0 || n >= (int)sizeof(fpath))
-			continue;
+		snprintf(fpath, sizeof(fpath), "%s/%s", path, entry->d_name);
 
 		playlist pl;
 		memset(&pl, 0, sizeof(pl));
@@ -742,9 +701,9 @@ void inspect_playlists(void)
 	closedir(dir);
 }// }}}
 
-void play_random_song(void)
+void play_random_song()
 {// {{{
-	putchar('\n');
+	puts("");
 	switch (rand() % 5)
 	{
 		case 0:

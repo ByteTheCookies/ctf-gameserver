@@ -33,8 +33,8 @@
  *   artist file:   data/<username>/artists/<artistname>
  */
 
-/* "data/" + "<username>" + NUL */
-#define USER_PATH_LENGTH (6 + USERNAME_LENGTH + 1)
+/* "./data/" + "<username>" + NUL */
+#define USER_PATH_LENGTH (8 + USERNAME_LENGTH + 1)
 
 /* USER_PATH + "/playlists/" + "<playlistname>" + NUL */
 #define PLAYLIST_PATH_LENGTH (USER_PATH_LENGTH + 11 + PLAYLIST_NAME_LENGTH + 1)
@@ -46,17 +46,17 @@ typedef struct artist_t artist;
 typedef struct playlist_t playlist;
 typedef struct user_t user;
 
-void main_menu(void);
-void user_menu(void);
+void main_menu(user* usr);
+void user_menu(user* usr);
 
-uint8_t register_user(void);
-uint8_t login(void);
+uint8_t register_user(user* usr);
+uint8_t login(user* usr);
 
-void create_artist(void);
-void decrypt_artist(void);
+void create_artist(user* usr);
+void decrypt_artist(user* usr);
 
-void create_playlist(void);
-void inspect_playlists(void);
+void create_playlist(user* usr);
+void inspect_playlists(user* usr);
 void play_random_song(void);
 
 

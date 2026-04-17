@@ -1,16 +1,13 @@
-FROM ubuntu:latest
+FROM debian:bookworm-slim
 
-RUN apt update && apt install -y socat build-essential
+RUN apt update && apt install -y socat
 
 WORKDIR /app
-COPY vulnify.c vulnify.h Makefile ./
+COPY vulnify .
 
 RUN mkdir data
-RUN apt install make
-RUN make build
 RUN chmod +x ./vulnify
-RUN rm -f ./vulnify.c ./vulnify.h ./Makefile
 
 EXPOSE 1337
 
-CMD ["socat", "-t", "10", "-T", "10", "TCP-LISTEN:1337,reuseaddr,fork", "EXEC:/app/vulnify"]
+CMD ["socat", "-d", "TCP-LISTEN:1337,reuseaddr,fork", "EXEC:/app/vulnify"]
