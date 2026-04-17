@@ -189,8 +189,8 @@ class Client():
             self.remote.recvuntil(b'> ', timeout=5)
             self.remote.sendline(key)
 
-            self.remote.recvuntil(b'"', timeout=5)
-            desc = self.remote.recvuntil(b'"')[:-1]
+            self.remote.recvuntil(b':\n', timeout=5)
+            desc = self.remote.recvline().strip()
 
             self.remote.recvuntil(b'> ', timeout=5)
         except:
