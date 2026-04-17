@@ -24,33 +24,25 @@ class Client():
             self.remote.close()
             self.connected = False
 
-    def exit(self):
+    def sync(self):
         if self.connected:
-            self.remote.recvuntil(b'> ')
-            self.remote.sendline(b'0')
-            self.close()
-
-            return True
-
-        return False
+            self.remote.recvuntil(b'> ', timeout=5)
 
     def register(self, username: bytes, password: bytes) -> bool:
         if not self.connected:
             return False
 
-        self.remote.recvuntil(b'> ')
         self.remote.sendline(b'1')
 
         self.remote.recvuntil(b'> ')
         self.remote.sendline(username)
 
-        if b'[ERROR]' in self.remote.recvline():
-            return False
+        try:
+            self.remote.recvuntil(b'> ', timeout=5)
+            self.remote.sendline(password)
 
-        self.remote.recvuntil(b'> ')
-        self.remote.sendline(password)
-
-        if b'[ERROR]' in self.remote.recvline():
+            self.remote.recvuntil(b'> ', timeout=5)
+        except:
             self.close()
             return False
 
@@ -60,20 +52,17 @@ class Client():
         if not self.connected:
             return False
 
-        self.remote.recvuntil(b'> ')
         self.remote.sendline(b'2')
 
         self.remote.recvuntil(b'> ')
         self.remote.sendline(username)
 
-        if b'[ERROR]' in self.remote.recvline(): # invalid or not found
-            self.close()
-            return False
+        try:
+            self.remote.recvuntil(b'> ', timeout=5)
+            self.remote.sendline(password)
 
-        self.remote.recvuntil(b'> ')
-        self.remote.sendline(password)
-
-        if b'[ERROR]' in self.remote.recvline(): # invalid or wrong
+            self.remote.recvuntil(b'> ', timeout=5)
+        except:
             self.close()
             return False
 
@@ -85,59 +74,68 @@ class Client():
 
         assert len(songs) == num_songs, 'ayo check you bastard'
 
+        self.remote.sendline(b'1')
+
         self.remote.recvuntil(b'> ')
         self.remote.sendline(name)
 
-        if b'[ERROR]' in self.remote.recvline(): # duplicate or invalid
-            self.close()
-            return False
+        try:
+            self.remote.recvuntil(b'> ', timeout=5)
+            self.remote.sendline(description)
 
-        self.remote.recvuntil(b'> ')
-        self.remote.sendline(description)
+            self.remote.recvuntil(b'> ', timeout=5)
+            self.remote.sendline(str(num_songs).encode())
 
-        if b'[ERROR]' in self.remote.recvline(): # invalid
-            self.close()
-            return False
-
-        self.remote.recvuntil(b'> ')
-        self.remote.sendline(str(num_songs).encode())
-
-        if b'[ERROR]' in self.remote.recvline(): # invalid
-            self.close()
-            return False
-
-        for song in songs:
-            self.remote.recvuntil(b': ')
-            self.remote.sendline(song)
-
-            if self.remote.recvn(4) != b'Song': # invalid
+            try:
+                for song in songs:
+                    self.remote.recvuntil(b': ', timeout=5)
+                    self.remote.sendline(song)
+            except:
                 self.close()
                 return False
 
-        return b'[ERROR]' not in self.remote.recvline()
+            self.remote.recvuntil(b'> ', timeout=5)
+        except:
+            self.close()
+            return False
+
+        return True
 
     def inspect_playlists(self) -> dict | bool:
         if not self.connected:
             return False
 
-        first7 = self.remote.recvn(7)
+        self.remote.sendline(b'2')
 
-        if first7 == b'[ERROR]': # path or read issue
+        try:
+            blob = self.remote.recvuntil(b'> ', timeout=5)
+        except:
             self.close()
             return False
 
-        res = dict()
+        if b'[ERROR]' in blob:
+            return False
 
-        while b': ' in (line := self.remote.recvline()):
-            name = line.split(b': ')[-1].strip()
-            desc = self.remote.recvline().replace(b'"', b'').strip()
+        if b'Select an option' in blob:
+            blob = blob.split(b'Select an option')[0]
 
-            res[name] = (desc, [])
+        res = {}
 
-            while b'Song' == (line := self.remote.recvn(4)):
-                song = line.split(b': ')[-1].strip()
+        parts = blob.split(b'Playlist: ')
+        for part in parts[1:]:
+            lines = part.splitlines()
+            if len(lines) < 2:
+                continue
 
-                res[name] = (desc, res[name][1] + [song])
+            name = lines[0].strip()
+            desc = lines[1].replace(b'"', b'').strip()
+
+            songs = []
+            for ln in lines[2:]:
+                if ln.startswith(b'\tSong'):
+                    songs.append(ln.split(b': ', 1)[-1].strip())
+
+            res[name] = (desc, songs)
 
         return res
 
@@ -145,36 +143,34 @@ class Client():
         if not self.connected:
             return False
 
-        self.remote.recvuntil(b'> ')
         self.remote.sendline(b'3')
 
-        return b'Select' not in self.remote.recvline()
+        try:
+            self.remote.recvuntil(b'> ', timeout=5)
+        except:
+            self.close()
+            return False
+
+        return True
 
     def create_artist(self, name: bytes, description: bytes, key: bytes) -> bool:
         if not self.connected:
             return False
 
-        self.remote.recvuntil(b'> ')
         self.remote.sendline(b'4')
 
         self.remote.recvuntil(b'> ')
         self.remote.sendline(name)
 
-        if b'[ERROR]' in self.remote.recvline():
-            self.close()
-            return False
+        try:
+            self.remote.recvuntil(b'> ', timeout=5)
+            self.remote.sendline(description)
 
-        self.remote.recvuntil(b'> ')
-        self.remote.sendline(description)
+            self.remote.recvuntil(b'> ', timeout=5)
+            self.remote.sendline(key)
 
-        if b'[ERROR]' in self.remote.recvline():
-            self.close()
-            return False
-
-        self.remote.recvuntil(b'> ')
-        self.remote.sendline(key)
-
-        if b'[ERROR]' in self.remote.recvline():
+            self.remote.recvuntil(b'> ', timeout=5)
+        except:
             self.close()
             return False
 
@@ -184,23 +180,22 @@ class Client():
         if not self.connected:
             return False
 
-        self.remote.recvuntil(b'> ')
         self.remote.sendline(b'5')
 
         self.remote.recvuntil(b'> ')
         self.remote.sendline(name)
 
-        if b'[ERROR]' in self.remote.recvline():
+        try:
+            self.remote.recvuntil(b'> ', timeout=5)
+            self.remote.sendline(key)
+
+            self.remote.recvuntil(b':\n', timeout=5)
+
+            desc = self.remote.recvline().strip()
+
+            self.remote.recvuntil(b'> ', timeout=5)
+        except:
             self.close()
             return False
-
-        self.remote.recvuntil(b'> ')
-        self.remote.sendline(key)
-
-        if b'[ERROR]' == (line := self.remote.recvline())[:7]:
-            self.close()
-            return False
-
-        desc = line.split(b'"')[1]
 
         return desc

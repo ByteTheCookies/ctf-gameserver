@@ -156,12 +156,11 @@ def check_decrypt_artist(host):
 
     assert client.create_artist(artist, description, key), (artist, description, key)
 
-    result = client.decrypt_artist(artist, key) == description
+    result = client.decrypt_artist(artist, key) == description.hex().encode()
 
     client.close()
 
     return result, (artist, key)
-
 
 def check_sla(host):
     # Check service functionality
