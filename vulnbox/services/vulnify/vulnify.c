@@ -333,6 +333,7 @@ uint8_t register_user(user* usr)
 	while (fgets(password, sizeof(password), stdin) == NULL || !__check_string(password))
 	{
 		puts("[ERROR] Invalid password");
+		continue;
 	}
 
 	memset(usr, 0, sizeof(*usr));
