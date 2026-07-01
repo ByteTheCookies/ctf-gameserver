@@ -293,7 +293,7 @@ services:
       - vulnbox_vm_net
     command: ["ctf-checkermaster"]
 
-  checker_cake-configurator:
+  checker_cake_configurator:
     image: ctf-gameserver:local
     build:
       context: .

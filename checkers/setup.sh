@@ -32,3 +32,11 @@ cd ..
 cd vulnify-2
 ./setup.sh
 cd ..
+
+cd swink-1
+./setup.sh
+cd ..
+
+cd cake-configurator
+./setup.sh
+cd ..
