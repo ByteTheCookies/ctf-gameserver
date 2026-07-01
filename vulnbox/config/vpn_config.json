@@ -4,7 +4,7 @@
   "local_vulnboxes": true,
   "teams": {
     "start": 1,
-    "count": 2,
+    "count": 7,
     "hosts_per_team": 6
   },
   "team_contacts": {
@@ -12,7 +12,22 @@
       "team@bytethecookies.org"
     ],
     "02": [
-      "akiidjk@bytethecookies.org"
+      "team@bytethecookies.org"
+    ],
+    "03": [
+      "team@bytethecookies.org"
+    ],
+    "04": [
+      "team@bytethecookies.org"
+    ],
+    "05": [
+      "team@bytethecookies.org"
+    ],
+    "06": [
+      "team@bytethecookies.org"
+    ],
+    "07": [
+      "team@bytethecookies.org"
     ]
   }
 }
