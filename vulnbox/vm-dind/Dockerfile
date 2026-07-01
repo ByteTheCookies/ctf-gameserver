@@ -33,11 +33,12 @@ RUN mkdir -p /run/sshd /etc/ssh/sshd_config.d /etc/vulnbox \
        > /etc/ssh/sshd_config.d/99-vulnbox.conf
 
 COPY vm-dind/entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY services/CCForms /root/CCForms
-COPY services/vulnify /root/vulnify
+#COPY services/CCForms /root/CCForms
+#COPY services/vulnify /root/vulnify
+COPY services/swink /root/swink
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
-RUN chmod +x /root/CCForms/deploy.sh
+#RUN chmod +x /root/CCForms/deploy.sh
 
 VOLUME ["/var/lib/docker"]
 

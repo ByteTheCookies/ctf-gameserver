@@ -73,4 +73,11 @@ fi
 
 rm /root/vulnify/*.c /root/vulnify/*.h /root/vulnify/Makefile >/dev/null 2>&1 || true
 
+if
+    ! cd /root/swink
+    docker compose up -d >/var/log/swink-compose.log 2>&1
+then
+    echo "[vulnbox] swink deploy failed. See /var/log/swink-compose.log" >&2
+fi
+
 exec "$@"
