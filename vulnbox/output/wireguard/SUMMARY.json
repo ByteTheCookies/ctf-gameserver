@@ -11,7 +11,7 @@
     6,
     7
   ],
-  "hosts_per_team": 4,
+  "hosts_per_team": 6,
   "gameserver_ip": "10.10.0.1",
   "vm_ip_pattern": "10.60.<team>.1",
   "host_ip_pattern": "10.81.<team>.<host>"
