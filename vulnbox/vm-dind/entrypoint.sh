@@ -57,21 +57,21 @@ if ! docker compose version >/dev/null 2>&1; then
     exit 1
 fi
 
-if
-    ! cd /root/CCForms
-    /root/CCForms/deploy.sh >/var/log/ccforms-compose.log 2>&1
-then
-    echo "[vulnbox] CCForms deploy failed. See /var/log/ccforms-compose.log" >&2
-fi
+# if
+#     ! cd /root/CCForms
+#     /root/CCForms/deploy.sh >/var/log/ccforms-compose.log 2>&1
+# then
+#     echo "[vulnbox] CCForms deploy failed. See /var/log/ccforms-compose.log" >&2
+# fi
 
-if
-    ! cd /root/vulnify
-    docker compose up -d >/var/log/vulnify-compose.log 2>&1
-then
-    echo "[vulnbox] vulnify deploy failed. See /var/log/vulnify-compose.log" >&2
-fi
+# if
+#     ! cd /root/vulnify
+#     docker compose up -d >/var/log/vulnify-compose.log 2>&1
+# then
+#     echo "[vulnbox] vulnify deploy failed. See /var/log/vulnify-compose.log" >&2
+# fi
 
-rm /root/vulnify/*.c /root/vulnify/*.h /root/vulnify/Makefile >/dev/null 2>&1 || true
+# rm /root/vulnify/*.c /root/vulnify/*.h /root/vulnify/Makefile >/dev/null 2>&1 || true
 
 if
     ! cd /root/swink
@@ -83,8 +83,8 @@ fi
 
 if
     ! cd /root/cake-configurator
-    docker build -t cake_cleanup_deps -f cleanup/deps.Dockerfile cleanup
-    docker build -t cake_backend_deps -f cake_backend/Dockerfile cake_backend
+    docker build -t cake_cleanup_deps -f cleanup/Dockerfile.deps cleanup
+    docker build -t cake_backend_deps -f cake_backend/Dockerfile.deps cake_backend
     docker compose up -d >/var/log/cake-configurator-compose.log 2>&1
 then
     echo "[vulnbox] cake-configurator deploy failed. See /var/log/cake-configurator-compose.log" >&2
