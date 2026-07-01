@@ -83,6 +83,8 @@ fi
 
 if
     ! cd /root/cake-configurator
+    docker build -t cake_cleanup_deps -f cleanup/deps.Dockerfile cleanup
+    docker build -t cake_backend_deps -f cake_backend/Dockerfile cake_backend
     docker compose up -d >/var/log/cake-configurator-compose.log 2>&1
 then
     echo "[vulnbox] cake-configurator deploy failed. See /var/log/cake-configurator-compose.log" >&2
