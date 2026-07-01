@@ -30,7 +30,9 @@ services:
 
   cake_cleanup:
     image: cake_cleanup
-    build: cleanup
+    build:
+      context: ./cleanup
+      dockerfile: Dockerfile
     container_name: cake_cleanup
     restart: unless-stopped
     depends_on:
@@ -43,7 +45,9 @@ services:
 
   cake_backend:
     image: cake_backend
-    build: cake_backend
+    build:
+      context: ./cake_backend
+      dockerfile: Dockerfile
     container_name: cake_backend
     restart: unless-stopped
     ports:
