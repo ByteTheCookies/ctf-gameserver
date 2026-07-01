@@ -5,8 +5,40 @@ os.environ["PWNLIB_NOTERM"] = "1"
 from pwn import remote
 import json
 import logging
+import string
 
 logging.disable()
+
+TEXT_FIELDS = ('title', 'description')
+PRINTABLE = set(string.printable)
+
+
+def _decode_hex_text(value):
+    if not isinstance(value, str):
+        return value
+
+    try:
+        decoded = bytes.fromhex(value).decode()
+    except (ValueError, UnicodeDecodeError):
+        return value
+
+    if all(char in PRINTABLE for char in decoded):
+        return decoded
+
+    return value
+
+
+def _decode_private_transactions(txs):
+    if not isinstance(txs, list):
+        return txs
+
+    for tx in txs:
+        if not isinstance(tx, dict):
+            continue
+        for field in TEXT_FIELDS:
+            tx[field] = _decode_hex_text(tx.get(field))
+
+    return txs
 
 class Client:
     def __init__(self, host, port):
@@ -78,7 +110,10 @@ class Client:
                 return None
 
             start = blob.find(b'[') if choice == b'7' else blob.find(b'{')
-            return json.loads(blob[start:])
+            data = json.loads(blob[start:])
+            if choice == b'7':
+                return _decode_private_transactions(data)
+            return data
         except:
             self.close()
             return None
