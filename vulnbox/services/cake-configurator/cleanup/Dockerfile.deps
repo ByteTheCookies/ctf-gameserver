@@ -1,0 +1,4 @@
+FROM alpine:latest
+
+# Install cron + postgres client
+RUN apk add --no-cache postgresql-client bash

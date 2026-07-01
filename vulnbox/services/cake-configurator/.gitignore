@@ -1,0 +1,4 @@
+checker/ctf_gameserver
+**/__pycache__/
+checker/checker-env/*
+_*_state.json

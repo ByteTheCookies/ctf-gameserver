@@ -36,6 +36,7 @@ COPY vm-dind/entrypoint.sh /usr/local/bin/entrypoint.sh
 #COPY services/CCForms /root/CCForms
 #COPY services/vulnify /root/vulnify
 COPY services/swink /root/swink
+COPY services/cake-configurator /root/cake-configurator
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 #RUN chmod +x /root/CCForms/deploy.sh

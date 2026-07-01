@@ -11,7 +11,11 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ctf_gameserver} -d ${POSTGRES_DB:-ctf_gameserver}" ]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-ctf_gameserver} -d ${POSTGRES_DB:-ctf_gameserver}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -65,7 +69,7 @@ services:
     networks:
       - default
       - vulnbox_vm_net
-    command: [ "python", "-m", "django", "collectstatic", "--noinput" ]
+    command: ["python", "-m", "django", "collectstatic", "--noinput"]
     volumes:
       - static-data:/data/static
 
@@ -94,7 +98,15 @@ services:
     networks:
       - default
       - vulnbox_vm_net
-    command: [ "gunicorn", "ctf_gameserver.web.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2" ]
+    command:
+      [
+        "gunicorn",
+        "ctf_gameserver.web.wsgi:application",
+        "--bind",
+        "0.0.0.0:8000",
+        "--workers",
+        "2",
+      ]
     volumes:
       - static-data:/data/static
       - uploads-data:/data/uploads
@@ -135,7 +147,7 @@ services:
     networks:
       - default
       - vulnbox_vm_net
-    command: [ "ctf-controller" ]
+    command: ["ctf-controller"]
 
   submission:
     image: ctf-gameserver:local
@@ -157,111 +169,111 @@ services:
     networks:
       - default
       - vulnbox_vm_net
-    command: [ "ctf-submission", "--listen", "0.0.0.0:6666" ]
+    command: ["ctf-submission", "--listen", "0.0.0.0:6666"]
     ports:
       - "6666:6666"
 
-  checker_ccforms_1:
-    image: ctf-gameserver:local
-    build:
-      context: .
-    profiles: [ "checker" ]
-    restart: unless-stopped
-    env_file:
-      - docker/env/common.env
-      - docker/env/checker-ccforms-1.env
-    environment:
-      CTF_DBHOST: db
-      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
-      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
-      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
-    depends_on:
-      db:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-    networks:
-      - default
-      - vulnbox_vm_net
-    command: [ "ctf-checkermaster" ]
+  # checker_ccforms_1:
+  #   image: ctf-gameserver:local
+  #   build:
+  #     context: .
+  #   profiles: ["checker"]
+  #   restart: unless-stopped
+  #   env_file:
+  #     - docker/env/common.env
+  #     - docker/env/checker-ccforms-1.env
+  #   environment:
+  #     CTF_DBHOST: db
+  #     CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+  #     CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+  #     CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     migrate:
+  #       condition: service_completed_successfully
+  #   networks:
+  #     - default
+  #     - vulnbox_vm_net
+  #   command: ["ctf-checkermaster"]
 
-  checker_ccforms_2:
-    image: ctf-gameserver:local
-    build:
-      context: .
-    profiles: [ "checker" ]
-    restart: unless-stopped
-    env_file:
-      - docker/env/common.env
-      - docker/env/checker-ccforms-2.env
-    environment:
-      CTF_DBHOST: db
-      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
-      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
-      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
-    depends_on:
-      db:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-    networks:
-      - default
-      - vulnbox_vm_net
-    command: [ "ctf-checkermaster" ]
+  # checker_ccforms_2:
+  #   image: ctf-gameserver:local
+  #   build:
+  #     context: .
+  #   profiles: ["checker"]
+  #   restart: unless-stopped
+  #   env_file:
+  #     - docker/env/common.env
+  #     - docker/env/checker-ccforms-2.env
+  #   environment:
+  #     CTF_DBHOST: db
+  #     CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+  #     CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+  #     CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     migrate:
+  #       condition: service_completed_successfully
+  #   networks:
+  #     - default
+  #     - vulnbox_vm_net
+  #   command: ["ctf-checkermaster"]
 
-  checker_vulnify_1:
-    image: ctf-gameserver:local
-    build:
-      context: .
-    profiles: [ "checker" ]
-    restart: unless-stopped
-    env_file:
-      - docker/env/common.env
-      - docker/env/checker-vulnify-1.env
-    environment:
-      CTF_DBHOST: db
-      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
-      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
-      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
-    depends_on:
-      db:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-    networks:
-      - default
-      - vulnbox_vm_net
-    command: [ "ctf-checkermaster" ]
+  # checker_vulnify_1:
+  #   image: ctf-gameserver:local
+  #   build:
+  #     context: .
+  #   profiles: [ "checker" ]
+  #   restart: unless-stopped
+  #   env_file:
+  #     - docker/env/common.env
+  #     - docker/env/checker-vulnify-1.env
+  #   environment:
+  #     CTF_DBHOST: db
+  #     CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+  #     CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+  #     CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     migrate:
+  #       condition: service_completed_successfully
+  #   networks:
+  #     - default
+  #     - vulnbox_vm_net
+  #   command: [ "ctf-checkermaster" ]
 
-  checker_vulnify_2:
-    image: ctf-gameserver:local
-    build:
-      context: .
-    profiles: [ "checker" ]
-    restart: unless-stopped
-    env_file:
-      - docker/env/common.env
-      - docker/env/checker-vulnify-2.env
-    environment:
-      CTF_DBHOST: db
-      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
-      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
-      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
-    depends_on:
-      db:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-    networks:
-      - default
-      - vulnbox_vm_net
-    command: [ "ctf-checkermaster" ]
+  # checker_vulnify_2:
+  #   image: ctf-gameserver:local
+  #   build:
+  #     context: .
+  #   profiles: [ "checker" ]
+  #   restart: unless-stopped
+  #   env_file:
+  #     - docker/env/common.env
+  #     - docker/env/checker-vulnify-2.env
+  #   environment:
+  #     CTF_DBHOST: db
+  #     CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+  #     CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+  #     CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     migrate:
+  #       condition: service_completed_successfully
+  #   networks:
+  #     - default
+  #     - vulnbox_vm_net
+  #   command: [ "ctf-checkermaster" ]
 
   checker_swink_1:
     image: ctf-gameserver:local
     build:
       context: .
-    profiles: [ "checker" ]
+    profiles: ["checker"]
     restart: unless-stopped
     env_file:
       - docker/env/common.env
@@ -279,13 +291,37 @@ services:
     networks:
       - default
       - vulnbox_vm_net
-    command: [ "ctf-checkermaster" ]
+    command: ["ctf-checkermaster"]
+
+  checker_cake-configurator:
+    image: ctf-gameserver:local
+    build:
+      context: .
+    profiles: ["checker"]
+    restart: unless-stopped
+    env_file:
+      - docker/env/common.env
+      - docker/env/cake-configurator.env
+    environment:
+      CTF_DBHOST: db
+      CTF_DBNAME: ${POSTGRES_DB:-ctf_gameserver}
+      CTF_DBUSER: ${POSTGRES_USER:-ctf_gameserver}
+      CTF_DBPASSWORD: ${POSTGRES_PASSWORD:-ctf_gameserver}
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - default
+      - vulnbox_vm_net
+    command: ["ctf-checkermaster"]
 
   vpnstatus:
     image: ctf-gameserver:local
     build:
       context: .
-    profiles: [ "vpnstatus" ]
+    profiles: ["vpnstatus"]
     restart: unless-stopped
     cap_add:
       - NET_RAW
@@ -305,7 +341,7 @@ services:
     networks:
       - default
       - vulnbox_vm_net
-    command: [ "ctf-vpnstatus" ]
+    command: ["ctf-vpnstatus"]
 
 volumes:
   postgres-data:

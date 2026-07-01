@@ -13,7 +13,7 @@ services:
     environment:
       TEAM_ID: "1"
       DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "c7738b57ee2a32eef872cd0d4109b826e7ece6be"
+      SSH_ROOT_PASSWORD: "fce95d9ac0cd1e3cac3efcedc0f946cd43a7baae"
     volumes:
       - dind-data-team01:/var/lib/docker
     networks:
@@ -31,111 +31,16 @@ services:
     environment:
       TEAM_ID: "2"
       DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "ac5e7daa4cefa26c6a0f76a7d389c9ce32ea2da0"
+      SSH_ROOT_PASSWORD: "c05defa8a8244fedbaef3fcafe215f9908f54a2b"
     volumes:
       - dind-data-team02:/var/lib/docker
     networks:
       vulnbox_vm_net:
         ipv4_address: 10.60.2.1
-  vulnbox-team03:
-    build:
-      context: .
-      dockerfile: vm-dind/Dockerfile
-    image: vulnbox-dind:local
-    container_name: vulnbox-team03
-    hostname: vm-team03
-    privileged: true
-    restart: unless-stopped
-    environment:
-      TEAM_ID: "3"
-      DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "37eb1bdcfdc01ffad0e6fa37df49b6df8233bfcd"
-    volumes:
-      - dind-data-team03:/var/lib/docker
-    networks:
-      vulnbox_vm_net:
-        ipv4_address: 10.60.3.1
-  vulnbox-team04:
-    build:
-      context: .
-      dockerfile: vm-dind/Dockerfile
-    image: vulnbox-dind:local
-    container_name: vulnbox-team04
-    hostname: vm-team04
-    privileged: true
-    restart: unless-stopped
-    environment:
-      TEAM_ID: "4"
-      DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "88b0aafb0cab07af8de5ea9beb69c4ba64dffd62"
-    volumes:
-      - dind-data-team04:/var/lib/docker
-    networks:
-      vulnbox_vm_net:
-        ipv4_address: 10.60.4.1
-  vulnbox-team05:
-    build:
-      context: .
-      dockerfile: vm-dind/Dockerfile
-    image: vulnbox-dind:local
-    container_name: vulnbox-team05
-    hostname: vm-team05
-    privileged: true
-    restart: unless-stopped
-    environment:
-      TEAM_ID: "5"
-      DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "7ef4901a7d92b9fcbf5b6e2e208505cad53acefa"
-    volumes:
-      - dind-data-team05:/var/lib/docker
-    networks:
-      vulnbox_vm_net:
-        ipv4_address: 10.60.5.1
-  vulnbox-team06:
-    build:
-      context: .
-      dockerfile: vm-dind/Dockerfile
-    image: vulnbox-dind:local
-    container_name: vulnbox-team06
-    hostname: vm-team06
-    privileged: true
-    restart: unless-stopped
-    environment:
-      TEAM_ID: "6"
-      DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "fe1aa239fedc50dabeda1f1547cf8158c6d50ae8"
-    volumes:
-      - dind-data-team06:/var/lib/docker
-    networks:
-      vulnbox_vm_net:
-        ipv4_address: 10.60.6.1
-  vulnbox-team07:
-    build:
-      context: .
-      dockerfile: vm-dind/Dockerfile
-    image: vulnbox-dind:local
-    container_name: vulnbox-team07
-    hostname: vm-team07
-    privileged: true
-    restart: unless-stopped
-    environment:
-      TEAM_ID: "7"
-      DOCKER_TLS_CERTDIR: ""
-      SSH_ROOT_PASSWORD: "6c99fe2d786f41f9afa33755ddb4ae6b179dfbff"
-    volumes:
-      - dind-data-team07:/var/lib/docker
-    networks:
-      vulnbox_vm_net:
-        ipv4_address: 10.60.7.1
 
 volumes:
   dind-data-team01:
   dind-data-team02:
-  dind-data-team03:
-  dind-data-team04:
-  dind-data-team05:
-  dind-data-team06:
-  dind-data-team07:
 
 networks:
   vulnbox_vm_net:

@@ -4,8 +4,8 @@
   "local_vulnboxes": true,
   "teams": {
     "start": 1,
-    "count": 7,
-    "hosts_per_team": 4
+    "count": 2,
+    "hosts_per_team": 6
   },
   "team_contacts": {
     "01": [

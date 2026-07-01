@@ -80,4 +80,12 @@ then
     echo "[vulnbox] swink deploy failed. See /var/log/swink-compose.log" >&2
 fi
 
+
+if
+    ! cd /root/cake-configurator
+    docker compose up -d >/var/log/cake-configurator-compose.log 2>&1
+then
+    echo "[vulnbox] cake-configurator deploy failed. See /var/log/cake-configurator-compose.log" >&2
+fi
+
 exec "$@"

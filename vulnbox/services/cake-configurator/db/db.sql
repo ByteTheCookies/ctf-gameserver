@@ -1,0 +1,31 @@
+CREATE TABLE USERS (
+    USERNAME VARCHAR(32) PRIMARY KEY,
+    ID serial,
+    PASSWORD VARCHAR(32),
+    CREATION_TIME timestamp default current_timestamp
+);
+
+CREATE TABLE ORDERS (
+    ID VARCHAR(16) PRIMARY KEY,
+    USERNAME VARCHAR(32),
+    FOREIGN KEY (USERNAME) REFERENCES USERS(USERNAME) ON DELETE CASCADE,
+    CREATION_TIME timestamp default current_timestamp,
+
+    CAKESIZE VARCHAR(1),
+    FLAVOR VARCHAR(64),
+    TOPPINGS VARCHAR(32),
+    CUSTOM_TEXT VARCHAR(32),
+    COMMENT VARCHAR(64),
+    PRICE INT
+);
+
+REVOKE DELETE ON TABLE USERS FROM cake_user;
+REVOKE UPDATE ON TABLE USERS FROM cake_user;
+
+-- Create maintenance user
+CREATE USER maintenance_user WITH PASSWORD 'maintenance_password';
+
+-- Grant privileges
+GRANT SELECT, DELETE ON TABLE USERS TO maintenance_user;
+GRANT SELECT, DELETE ON TABLE ORDERS TO maintenance_user;
+GRANT CONNECT ON DATABASE app TO maintenance_user;

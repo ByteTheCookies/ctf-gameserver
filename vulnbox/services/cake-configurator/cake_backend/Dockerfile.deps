@@ -1,0 +1,12 @@
+# 22.04 important for dependencies
+FROM ubuntu:22.04
+
+WORKDIR /dependencies
+ENV COB_LDFLAGS=-Wl,--no-as-needed
+ENV TERM=xterm-256color
+
+RUN apt-get update \
+    && apt-get -o DPkg::Options::="--force-confnew" install -y gnucobol curl make socat python3
+RUN curl -L -o ./gixsql.deb https://github.com/mridoni/gixsql/releases/download/v1.0.20b/gixsql-ubuntu-22.04-lts-x64-1.0.20b-1.deb \
+    && apt-get install -y ./gixsql.deb
+RUN apt-get remove -y curl
