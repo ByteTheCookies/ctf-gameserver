@@ -3,7 +3,7 @@ FROM python:3-slim
 RUN apt update && apt install -y socat
 
 WORKDIR /app
-COPY server.py crypto.py fish.py .
+COPY server.py crypto.py fish.py ./
 
 RUN chmod +x /app/server.py
 
