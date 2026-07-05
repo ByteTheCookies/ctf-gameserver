@@ -167,11 +167,9 @@ def main() -> int:
             "    driver: bridge",
             "    ipam:",
             "      config:",
-            "        - subnet: 10.60.0.0/16",
+            "        - subnet: 10.0.0.0/8",
         ]
     )
-    if support_count:
-        lines.append("        - subnet: 10.30.0.0/16")
 
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(lines) + "\n")
