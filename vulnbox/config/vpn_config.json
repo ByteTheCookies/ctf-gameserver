@@ -5,7 +5,8 @@
   "teams": {
     "start": 1,
     "count": 7,
-    "hosts_per_team": 6
+    "hosts_per_team": 6,
+    "support_teams": 1
   },
   "team_contacts": {
     "01": [

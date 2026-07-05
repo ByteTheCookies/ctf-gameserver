@@ -127,6 +127,24 @@ services:
     networks:
       vulnbox_vm_net:
         ipv4_address: 10.60.7.1
+  vulnbox-support:
+    build:
+      context: .
+      dockerfile: vm-dind/Dockerfile.support
+    image: vulnbox-dind-support:local
+    container_name: vulnbox-support
+    hostname: vm-support
+    privileged: true
+    restart: unless-stopped
+    environment:
+      TEAM_ID: "7"
+      DOCKER_TLS_CERTDIR: ""
+      SSH_ROOT_PASSWORD: "f3e9dfa3f5b836d69d2bfccfbc2b4f1ab2afedc0b4f"
+    volumes:
+      - dind-data-support:/var/lib/docker
+    networks:
+      vulnbox_vm_net:
+        ipv4_address: 10.30.1.1
 
 volumes:
   dind-data-team01:
@@ -136,6 +154,7 @@ volumes:
   dind-data-team05:
   dind-data-team06:
   dind-data-team07:
+  dind-data-support:
 
 networks:
   vulnbox_vm_net:
@@ -144,3 +163,4 @@ networks:
     ipam:
       config:
         - subnet: 10.60.0.0/16
+        - subnet: 10.30.0.0/16

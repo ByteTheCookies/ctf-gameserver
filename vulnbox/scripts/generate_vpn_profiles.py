@@ -3,6 +3,7 @@
 
 Addressing model:
 - gameserver: 10.10.0.1
+- support VM: 10.30.<support>.1
 - team VM:    10.60.<team>.1
 - host:       10.81.<team>.<host>
 """
@@ -73,7 +74,7 @@ def shutil_which(binary: str) -> str | None:
     return None
 
 
-def parse_config(path: Path) -> tuple[str, int, int, int, int, bool]:
+def parse_config(path: Path) -> tuple[str, int, int, int, int, int, bool]:
     raw = json.loads(path.read_text())
     endpoint = raw.get("endpoint", "vpn.example.ctf:51820")
     port = int(raw.get("listen_port", 51820))
@@ -81,6 +82,7 @@ def parse_config(path: Path) -> tuple[str, int, int, int, int, bool]:
     start_team = int(raw["teams"]["start"])
     count_team = int(raw["teams"]["count"])
     hosts_per_team = int(raw["teams"]["hosts_per_team"])
+    support_count = int(raw["teams"].get("support_teams", 0))
     local_vulnboxes = bool(raw.get("local_vulnboxes", True))
 
     if start_team < 1 or start_team > 254:
@@ -89,8 +91,18 @@ def parse_config(path: Path) -> tuple[str, int, int, int, int, bool]:
         raise ValueError("teams.start + teams.count - 1 must be <= 254")
     if hosts_per_team < 1 or hosts_per_team > 254:
         raise ValueError("teams.hosts_per_team must be in [1, 254]")
+    if support_count < 0 or support_count > 254:
+        raise ValueError("teams.support_teams must be in [0, 254]")
 
-    return endpoint, port, start_team, count_team, hosts_per_team, local_vulnboxes
+    return (
+        endpoint,
+        port,
+        start_team,
+        count_team,
+        hosts_per_team,
+        support_count,
+        local_vulnboxes,
+    )
 
 
 def make_teams(start_team: int, count_team: int, hosts_per_team: int) -> List[Team]:
@@ -137,9 +149,15 @@ def main() -> int:
 
     ensure_wg()
 
-    endpoint, listen_port, start_team, count_team, hosts_per_team, local_vulnboxes = (
-        parse_config(Path(args.config))
-    )
+    (
+        endpoint,
+        listen_port,
+        start_team,
+        count_team,
+        hosts_per_team,
+        support_count,
+        local_vulnboxes,
+    ) = parse_config(Path(args.config))
     teams = make_teams(start_team, count_team, hosts_per_team)
 
     out = Path(args.output_dir)
@@ -153,7 +171,19 @@ def main() -> int:
     )
 
     vm_peers: list[Peer] = []
+    support_vm_peers: list[Peer] = []
     host_peers: list[Peer] = []
+
+    for support_index in range(1, support_count + 1):
+        vm_priv, vm_pub = wg_keypair()
+        support_vm_peers.append(
+            Peer(
+                name=f"support{support_index:02d}_vm",
+                address=f"10.30.{support_index}.1/32",
+                private_key=vm_priv,
+                public_key=vm_pub,
+            )
+        )
 
     for team in teams:
         vm_priv, vm_pub = wg_keypair()
@@ -176,7 +206,11 @@ def main() -> int:
                 )
             )
 
-    server_peers = host_peers if local_vulnboxes else (vm_peers + host_peers)
+    server_peers = (
+        host_peers
+        if local_vulnboxes
+        else (support_vm_peers + vm_peers + host_peers)
+    )
     server_conf = [
         "[Interface]",
         f"Address = {server.address}",
@@ -193,6 +227,30 @@ def main() -> int:
     write_text(out / "gameserver" / "wg0.conf", "\n".join(server_conf).rstrip() + "\n")
 
     server_endpoint = endpoint
+
+    for vm in support_vm_peers:
+        support_num = int(vm.name.replace("support", "").split("_")[0])
+        cfg = [
+            "[Interface]",
+            f"Address = {vm.address}",
+            f"PrivateKey = {vm.private_key}",
+            "",
+            render_peer_block(
+                server.public_key,
+                [
+                    "10.10.0.1/32",
+                    f"10.30.{support_num}.1/32",
+                    "10.60.0.0/16",
+                    "10.81.0.0/16",
+                ],
+                endpoint=server_endpoint,
+            ),
+            "",
+        ]
+        write_text(
+            out / "support" / f"support{support_num:02d}" / "vm" / "wg0.conf",
+            "\n".join(cfg),
+        )
 
     for vm in vm_peers:
         team_num = int(vm.name.replace("team", "").split("_")[0])
@@ -223,7 +281,12 @@ def main() -> int:
             "",
             render_peer_block(
                 server.public_key,
-                ["10.10.0.1/32", "10.60.0.0/16", f"10.81.{team_num}.0/24"],
+                [
+                    "10.10.0.1/32",
+                    "10.30.0.0/16",
+                    "10.60.0.0/16",
+                    f"10.81.{team_num}.0/24",
+                ],
                 endpoint=server_endpoint,
             ),
             "",
@@ -242,8 +305,10 @@ def main() -> int:
         "listen_port": listen_port,
         "local_vulnboxes": local_vulnboxes,
         "teams": [t.team_id for t in teams],
+        "support_teams": support_count,
         "hosts_per_team": hosts_per_team,
         "gameserver_ip": "10.10.0.1",
+        "support_vm_ip_pattern": "10.30.<support>.1",
         "vm_ip_pattern": "10.60.<team>.1",
         "host_ip_pattern": "10.81.<team>.<host>",
     }

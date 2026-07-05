@@ -5,6 +5,7 @@ This setup runs Gameserver + WireGuard + team vulnbox VMs on the same VPS.
 ## Addressing
 
 - `gameserver`: `10.10.0.1`
+- `support VM`: `10.30.<support>.1`
 - `team VM`: `10.60.<team>.1`
 - `player host`: `10.81.<team>.<host>`
 
@@ -16,7 +17,7 @@ This setup runs Gameserver + WireGuard + team vulnbox VMs on the same VPS.
 - `scripts/generate_vm_passwords.py`: generate per-team VM root passwords
 - `scripts/send_team_configs.py`: package per-team configs into ZIPs and send them via Resend
 - `scripts/setup_vps_routing.sh`: apply/check VPS routing+iptables rules
-- `scripts/check_vm_connectivity.sh`: check `10.60.<team>.1` reachability
+- `scripts/check_vm_connectivity.sh`: check team VM reachability
 
 ## From Scratch
 
@@ -79,8 +80,8 @@ Use `--dry-run` to only generate ZIPs and print recipients without sending.
 
 ## Notes
 
-- `local_vulnboxes: true` in `vpn_config.json` keeps `10.60.x.1` local on VPS and avoids WG route conflicts.
-- Host profiles are generated with `AllowedIPs = 10.10.0.1/32, 10.60.0.0/16, 10.81.0.0/16`.
+- `local_vulnboxes: true` in `vpn_config.json` keeps `10.30.x.1` and `10.60.x.1` local on VPS and avoids WG route conflicts.
+- Host profiles are generated with `AllowedIPs = 10.10.0.1/32, 10.30.0.0/16, 10.60.0.0/16, 10.81.<team>.0/24`.
 - Distribute only per-team host profiles from `output/wireguard/teams/teamXX/hosts/`.
 - Treat `output/vm_passwords.json` and `output/vm_passwords.env` as secrets.
 - Each VM starts `sshd` on port `22` with `root` password auth enabled.
